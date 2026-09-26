@@ -1,0 +1,178 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { useRouter } from "@/lib/i18n/navigation";
+import { Modal } from "../Overlay";
+import { useToast } from "../Toast";
+import { ACCEPT, api, uploadFile } from "../upload";
+import { fmtDate, rupiah, todayJkt } from "@/lib/format";
+
+export type InvRow = { id: number; no: string; status: string; total: number; amount_received: number | null; name: string; whatsapp: string; due: string; reg_id: number; reg_status: string; open?: boolean };
+
+function Proof({ kind, onDone, label }: { kind: string; onDone: (id: string | undefined) => void; label: string }) {
+  const [st, setSt] = useState<string>("");
+  return (
+    <label className="field">
+      <span className="flabel">{label}</span>
+      <input
+        className="in"
+        type="file"
+        accept={ACCEPT}
+        onChange={async (e) => {
+          const f = e.target.files?.[0];
+          if (!f) return onDone(undefined);
+          setSt("…");
+          try {
+            const u = await uploadFile(f, kind);
+            onDone(u.id);
+            setSt("✓");
+          } catch (err) {
+            setSt((err as Error).message);
+            onDone(undefined);
+          }
+        }}
+      />
+      {st && <span className="hint">{st}</span>}
+    </label>
+  );
+}
+
+export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number }) {
+  const t = useTranslations("admin.pay");
+  const tc = useTranslations("common");
+  const l = useLocale() as "id" | "en";
+  const router = useRouter();
+  const toast = useToast();
+  const [menu, setMenu] = useState(false);
+  const [modal, setModal] = useState<null | "paid" | "wa" | "react" | "cancel">(inv.open && ["UNPAID", "AWAITING_VERIFICATION", "OVERDUE"].includes(inv.status) ? "paid" : null);
+  const [busy, setBusy] = useState(false);
+  const [amount, setAmount] = useState(String(inv.amount_received ?? inv.total));
+  const [paidAt, setPaidAt] = useState(todayJkt());
+  const [proof, setProof] = useState<string | undefined>();
+  const [note, setNote] = useState("");
+  const [accept, setAccept] = useState(false);
+  const [waAt, setWaAt] = useState("");
+  const [reason, setReason] = useState("");
+  const [refund, setRefund] = useState("0");
+  const [refundAt, setRefundAt] = useState(todayJkt());
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!menu) return;
+    const h = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setMenu(false);
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, [menu]);
+
+  const run = async (fn: () => Promise<string | void>) => {
+    setBusy(true);
+    try {
+      const msg = await fn();
+      if (msg) toast(msg);
+      setModal(null);
+      setMenu(false);
+      router.refresh();
+    } catch (e) {
+      toast((e as Error).message);
+    }
+    setBusy(false);
+  };
+  const open = ["UNPAID", "AWAITING_VERIFICATION", "OVERDUE"].includes(inv.status);
+  const diff = Number(amount || 0) - inv.total;
+  const followText = t("followText", { name: inv.name, no: inv.no, total: rupiah(inv.total), due: fmtDate(new Date(new Date(inv.due).getTime() + 7 * 3600_000), l) });
+  const followHref = `https://wa.me/${inv.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(followText)}`;
+  const primary = open ? (
+    <button className="btn xs ok" onClick={() => setModal("paid")}>{t("markPaid")}</button>
+  ) : inv.status === "PAID" && ["PAID", "SCHEDULED", "IN_PROGRESS"].includes(inv.reg_status) ? (
+    <a className="btn xs ghost" href={`${l === "en" ? "/en" : ""}/admin/jadwal?reg=${inv.reg_id}`}>{t("schedule")}</a>
+  ) : ["OVERDUE", "EXPIRED"].includes(inv.status) ? (
+    <button className="btn xs ghost" onClick={() => setModal("react")}>{t("reactivate")}</button>
+  ) : null;
+
+  return (
+    <div className="row" style={{ gap: 6, justifyContent: "flex-end" }}>
+      {primary}
+      <div className="menu" ref={ref}>
+        <button className="btn xs ghost" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>⋯</button>
+        {menu && (
+          <div className="pop" role="menu">
+            {open && <button onClick={() => { setModal("paid"); setMenu(false); }}>{t("markPaid")}</button>}
+            {open && <button onClick={() => { setModal("wa"); setMenu(false); }}>{t("confirmWa")}</button>}
+            {inv.status !== "CANCELLED" && inv.status !== "EXPIRED" && <button onClick={() => run(async () => { await api(`/api/admin/invoices/${inv.id}/resend`, { body: {} }); return t("toastResent"); })}>{t("resend")}</button>}
+            {open && <a href={followHref} target="_blank" rel="noopener noreferrer">{t("followUp")}</a>}
+            {["OVERDUE", "EXPIRED"].includes(inv.status) && <button onClick={() => { setModal("react"); setMenu(false); }}>{t("reactivate")}</button>}
+            <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer">{t("pdf")}</a>
+            {inv.status !== "CANCELLED" && inv.reg_status !== "COMPLETED" && (
+              <>
+                <hr />
+                <button className="danger" onClick={() => { setModal("cancel"); setMenu(false); }}>{t("cancel")}</button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <Modal
+        open={modal === "paid"}
+        onClose={() => setModal(null)}
+        title={`${t("mPaidTitle")} · ${inv.no}`}
+        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn ok" disabled={busy || !amount} onClick={() => run(async () => { const r = await api<{ paid: boolean; invoice_no: string }>(`/api/admin/invoices/${inv.id}/mark-paid`, { body: { amount: Number(amount), paid_at: paidAt, proof_upload: proof, note: note || undefined, accept_difference: accept } }); return r.paid ? t("toastPaid", { no: r.invoice_no }) : t("toastPartial"); })}>{t("markPaid")}</button></>}
+      >
+        <div className="row between" style={{ padding: "12px 14px", background: "var(--teal-tint)", borderRadius: 8 }}>
+          <b>{inv.name}</b>
+          <span style={{ fontFamily: "var(--display)", fontSize: 22 }}>{rupiah(inv.total)}</span>
+        </div>
+        <div className="fgrid">
+          <label className="field"><span className="flabel">{t("amount")}</span><input className="in mono" inputMode="numeric" value={amount} onChange={(e) => setAmount(e.target.value.replace(/\D/g, ""))} /></label>
+          <label className="field"><span className="flabel">{t("paidAt")}</span><input className="in" type="date" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} /></label>
+        </div>
+        {diff !== 0 && (
+          <>
+            <div className="banner warn">{t("diffWarn", { total: rupiah(inv.total), diff: rupiah(diff) })}</div>
+            <label className="row small"><input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} />{t("acceptDiff")}</label>
+          </>
+        )}
+        <Proof kind="PAYMENT_PROOF" onDone={setProof} label={inv.status === "AWAITING_VERIFICATION" ? t("proofOpt") : t("proof")} />
+        <label className="field"><span className="flabel">{t("note")}</span><input className="in" value={note} onChange={(e) => setNote(e.target.value)} /></label>
+      </Modal>
+
+      <Modal
+        open={modal === "wa"}
+        onClose={() => setModal(null)}
+        title={t("mWaTitle")}
+        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn" disabled={busy} onClick={() => run(async () => { await api(`/api/admin/invoices/${inv.id}/confirm-wa`, { body: { at: waAt ? new Date(waAt).toISOString() : undefined, proof_upload: proof, note: note || undefined } }); return t("toastWa"); })}>{tc("save")}</button></>}
+      >
+        <label className="field"><span className="flabel">{t("waAt")}</span><input className="in" type="datetime-local" value={waAt} onChange={(e) => setWaAt(e.target.value)} /></label>
+        <Proof kind="PAYMENT_PROOF" onDone={setProof} label={t("proof")} />
+        <label className="field"><span className="flabel">{t("note")}</span><input className="in" value={note} onChange={(e) => setNote(e.target.value)} /></label>
+      </Modal>
+
+      <Modal
+        open={modal === "react"}
+        onClose={() => setModal(null)}
+        title={t("mReactTitle")}
+        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn" disabled={busy} onClick={() => run(async () => { const r = await api<{ due: string }>(`/api/admin/invoices/${inv.id}/reactivate`, { body: {} }); return t("toastReact", { date: r.due }); })}>{t("reactivate")}</button></>}
+      >
+        <p>{t("reactDesc", { n: dueDays })}</p>
+      </Modal>
+
+      <Modal
+        open={modal === "cancel"}
+        onClose={() => setModal(null)}
+        title={t("mCancelTitle")}
+        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn bad" disabled={busy || reason.trim().length < 3} onClick={() => run(async () => { await api(`/api/admin/invoices/${inv.id}/cancel`, { body: { reason, refund_amount: Number(refund || 0), refund_at: refundAt, refund_upload: proof } }); return t("toastCancel"); })}>{t("cancel")}</button></>}
+      >
+        <div className="banner bad">{t("cancelWarn")}</div>
+        <label className="field"><span className="flabel">{t("cancelReason")}</span><textarea className="in" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
+        {inv.status === "PAID" && (
+          <>
+            <div className="fgrid">
+              <label className="field"><span className="flabel">{t("refundAmount")}</span><input className="in mono" inputMode="numeric" value={refund} onChange={(e) => setRefund(e.target.value.replace(/\D/g, ""))} /></label>
+              <label className="field"><span className="flabel">{t("refundAt")}</span><input className="in" type="date" value={refundAt} onChange={(e) => setRefundAt(e.target.value)} /></label>
+            </div>
+            <Proof kind="REFUND_PROOF" onDone={setProof} label={t("refundProof")} />
+          </>
+        )}
+      </Modal>
+    </div>
+  );
+}

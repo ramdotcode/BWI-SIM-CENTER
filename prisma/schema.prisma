@@ -1,0 +1,466 @@
+// BWI Sim Center — skema database.
+// Konvensi: nama kolom snake_case = nama field formulir = kolom Excel (satu sumber).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // migrasi & LISTEN real-time (koneksi langsung / Supabase Session pooler)
+}
+
+// ---------- Enums ----------
+enum AdminRole {
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum Gender {
+  M
+  F
+}
+
+enum LicenceType {
+  SPL
+  PPL
+  CPL
+  ATPL
+  MPL
+}
+
+enum InstrumentRating {
+  VALID
+  EXPIRED
+  NONE
+}
+
+enum IcaoLevel {
+  L4
+  L5
+  L6
+  NONE
+}
+
+enum MedicalClass {
+  C1
+  C2
+}
+
+enum Locale {
+  id
+  en
+}
+
+enum PrefTime {
+  MORNING
+  AFTERNOON
+  EVENING
+  FLEXIBLE
+}
+
+enum RegistrationStatus {
+  PENDING_VERIFICATION
+  REUPLOAD_REQUIRED
+  PENDING_PAYMENT
+  EXPIRED
+  PAID
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum DocumentKind {
+  KTP
+  MEDICAL
+  LICENCE_FRONT
+  LICENCE_RATING
+  PHOTO
+  PASSPORT
+}
+
+enum DocumentReview {
+  PENDING
+  OK
+  REJECTED
+}
+
+enum InvoiceStatus {
+  UNPAID
+  AWAITING_VERIFICATION
+  PAID
+  OVERDUE
+  EXPIRED
+  CANCELLED
+}
+
+enum SlotStatus {
+  AVAILABLE
+  SCHEDULED
+  MAINTENANCE
+  COMPLETED
+  NO_SHOW
+  CANCELLED
+}
+
+enum TokenPurpose {
+  DASHBOARD
+  REUPLOAD
+}
+
+enum NotificationChannel {
+  EMAIL
+  WA
+  DASHBOARD
+}
+
+enum NotificationStatus {
+  QUEUED
+  SENT
+  FAILED
+  MANUAL
+}
+
+enum ActorType {
+  ADMIN
+  SYSTEM
+  PARTICIPANT
+}
+
+// ---------- Master & konfigurasi ----------
+model Setting {
+  key        String   @id
+  value      Json
+  updated_at DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model Simulator {
+  id     Int     @id @default(autoincrement())
+  code   String  @unique // 'A320' | 'B737'
+  name   String
+  bay    String
+  level  String  @default("FTD")
+  active Boolean @default(true)
+
+  registrations Registration[]
+  slots         Slot[]
+
+  @@map("simulators")
+}
+
+model Package {
+  id             Int     @id @default(autoincrement())
+  code           String  @unique
+  name_id        String
+  name_en        String
+  short_id       String
+  short_en       String
+  hours          Int
+  price_idr      BigInt
+  description_id String
+  description_en String
+  bullets_id     Json    @default("[]")
+  bullets_en     Json    @default("[]")
+  highlight      Boolean @default(false)
+  active         Boolean @default(true)
+  sort           Int     @default(0)
+
+  registrations Registration[]
+
+  @@map("packages")
+}
+
+model Instructor {
+  id              Int      @id @default(autoincrement())
+  name            String
+  simulator_codes String[]
+  active          Boolean  @default(true)
+
+  slots Slot[]
+
+  @@map("instructors")
+}
+
+model AdminUser {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  password_hash String
+  role          AdminRole @default(ADMIN)
+  active        Boolean   @default(true)
+  last_login_at DateTime?
+  created_at    DateTime  @default(now())
+
+  @@map("admin_users")
+}
+
+// ---------- Peserta & pendaftaran ----------
+model Participant {
+  id                  Int               @id @default(autoincrement())
+  full_name           String
+  nik                 String            @unique @db.Char(16)
+  passport_no         String?
+  birth_place         String
+  birth_date          DateTime          @db.Date
+  gender              Gender
+  nationality         String
+  whatsapp            String
+  email               String
+  address             String
+  city                String
+  province            String
+  postal_code         String?
+  emergency_name      String
+  emergency_relation  String
+  emergency_phone     String
+  licence_type        LicenceType
+  licence_no          String
+  licence_authority   String
+  licence_issued_at   DateTime          @db.Date
+  instrument_rating   InstrumentRating?
+  type_ratings        String[]
+  total_hours         Decimal           @db.Decimal(7, 1)
+  hours_on_type       Decimal?          @db.Decimal(7, 1)
+  icao_english        IcaoLevel?
+  organization        String?
+  position            String?
+  medical_class       MedicalClass
+  medical_no          String
+  medical_valid_until DateTime          @db.Date
+  medical_center      String?
+  locale              Locale            @default(id)
+  created_at          DateTime          @default(now())
+  updated_at          DateTime          @updatedAt
+
+  registrations Registration[]
+
+  @@index([email])
+  @@map("participants")
+}
+
+model Registration {
+  id                      Int                @id @default(autoincrement())
+  reg_no                  String             @unique
+  participant_id          Int
+  simulator_id            Int
+  package_id              Int
+  hours_snapshot          Int
+  price_snapshot          BigInt
+  package_name_snapshot   String
+  pref_date_from          DateTime?          @db.Date
+  pref_date_to            DateTime?          @db.Date
+  pref_time               PrefTime           @default(FLEXIBLE)
+  purpose                 String?
+  notes                   String?
+  status                  RegistrationStatus @default(PENDING_VERIFICATION)
+  verified_by             Int?
+  verified_at             DateTime?
+  rejection_note          String?
+  reupload_count          Int                @default(0)
+  cancelled_reason        String?
+  affected_by_maintenance Boolean            @default(false)
+  schedule_sent_at        DateTime?
+  created_at              DateTime           @default(now())
+  updated_at              DateTime           @updatedAt
+
+  participant   Participant    @relation(fields: [participant_id], references: [id])
+  simulator     Simulator      @relation(fields: [simulator_id], references: [id])
+  package       Package        @relation(fields: [package_id], references: [id])
+  documents     Document[]
+  invoices      Invoice[]
+  slots         Slot[]
+  access_tokens AccessToken[]
+  notifications Notification[]
+
+  @@index([status])
+  @@index([created_at])
+  @@map("registrations")
+}
+
+model Document {
+  id              Int            @id @default(autoincrement())
+  registration_id Int
+  kind            DocumentKind
+  storage_key     String
+  original_name   String
+  mime            String
+  size            Int
+  version         Int            @default(1)
+  uploaded_at     DateTime       @default(now())
+  review          DocumentReview @default(PENDING)
+  review_note     String?
+  superseded      Boolean        @default(false)
+
+  registration Registration @relation(fields: [registration_id], references: [id], onDelete: Cascade)
+
+  @@index([registration_id, kind])
+  @@map("documents")
+}
+
+// Unggahan sementara (sebelum form dikirim). Dibersihkan job.
+model PendingUpload {
+  id            String       @id
+  kind          String       // DocumentKind | PAYMENT_PROOF | REFUND_PROOF | SESSION_REPORT
+  storage_key   String
+  original_name String
+  mime          String
+  size          Int
+  created_at    DateTime     @default(now())
+  claimed       Boolean      @default(false)
+
+  @@map("pending_uploads")
+}
+
+model Invoice {
+  id                Int           @id @default(autoincrement())
+  invoice_no        String        @unique
+  registration_id   Int
+  issued_at         DateTime      @default(now())
+  due_at            DateTime
+  subtotal          BigInt
+  vat               BigInt        @default(0)
+  total             BigInt
+  status            InvoiceStatus @default(UNPAID)
+  wa_confirmed_at   DateTime?
+  proof_storage_key String?
+  amount_received   BigInt?
+  paid_at           DateTime?
+  verified_by       Int?
+  note              String?
+  overdue_at        DateTime?
+  reminder_sent_at  DateTime?
+  cancelled_at      DateTime?
+  refund_amount     BigInt?
+  refund_at         DateTime?
+  refund_proof_key  String?
+  pdf_storage_key   String?
+  updated_at        DateTime      @updatedAt
+
+  registration Registration @relation(fields: [registration_id], references: [id])
+
+  @@index([status])
+  @@index([issued_at])
+  @@map("invoices")
+}
+
+model Slot {
+  id                 Int        @id @default(autoincrement())
+  simulator_id       Int
+  date               DateTime   @db.Date
+  start_time         String     // "HH:MM" WIB
+  end_time           String
+  status             SlotStatus @default(AVAILABLE)
+  registration_id    Int?
+  instructor_id      Int?
+  maintenance_reason String?
+  result_note        String?
+  report_storage_key String?
+  reminder_h1_at     DateTime?
+  reminder_h0_at     DateTime?
+  updated_by         Int?
+  updated_at         DateTime   @updatedAt
+
+  simulator    Simulator     @relation(fields: [simulator_id], references: [id])
+  registration Registration? @relation(fields: [registration_id], references: [id])
+  instructor   Instructor?   @relation(fields: [instructor_id], references: [id])
+  history      SlotHistory[]
+
+  @@unique([simulator_id, date, start_time])
+  @@index([date])
+  @@index([registration_id])
+  @@map("slots")
+}
+
+model SlotHistory {
+  id                   Int         @id @default(autoincrement())
+  slot_id              Int
+  from_status          SlotStatus
+  to_status            SlotStatus
+  from_registration_id Int?
+  to_registration_id   Int?
+  by                   Int?
+  at                   DateTime    @default(now())
+  note                 String?
+
+  slot Slot @relation(fields: [slot_id], references: [id], onDelete: Cascade)
+
+  @@index([at])
+  @@map("slot_history")
+}
+
+model AccessToken {
+  id              Int          @id @default(autoincrement())
+  registration_id Int
+  purpose         TokenPurpose @default(DASHBOARD)
+  token_hash      String       @unique
+  token_enc       String       // terenkripsi (AES-GCM) agar bisa "kirim ulang" token yang sama
+  created_at      DateTime     @default(now())
+  expires_at      DateTime?
+  opened_at       DateTime?
+  revoked_at      DateTime?
+  last_seen_at    DateTime?
+
+  registration Registration @relation(fields: [registration_id], references: [id], onDelete: Cascade)
+
+  @@index([registration_id, purpose])
+  @@map("access_tokens")
+}
+
+model OtpCode {
+  id         Int       @id @default(autoincrement())
+  email      String
+  code_hash  String
+  expires_at DateTime
+  attempts   Int       @default(0)
+  used_at    DateTime?
+  created_at DateTime  @default(now())
+
+  @@index([email])
+  @@map("otp_codes")
+}
+
+model Notification {
+  id              Int                 @id @default(autoincrement())
+  registration_id Int?
+  channel         NotificationChannel
+  template        String
+  locale          Locale              @default(id)
+  recipient       String?
+  payload         Json                @default("{}")
+  status          NotificationStatus  @default(QUEUED)
+  sent_at         DateTime?
+  error           String?
+  created_at      DateTime            @default(now())
+
+  registration Registration? @relation(fields: [registration_id], references: [id], onDelete: Cascade)
+
+  @@index([registration_id])
+  @@index([channel, status])
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id         Int       @id @default(autoincrement())
+  actor_type ActorType
+  actor_id   Int?
+  action     String
+  entity     String
+  entity_id  String?
+  meta       Json      @default("{}")
+  at         DateTime  @default(now())
+
+  @@index([entity, entity_id])
+  @@index([at])
+  @@map("activity_log")
+}
+
+model Counter {
+  key   String @id
+  value Int    @default(0)
+
+  @@map("counters")
+}

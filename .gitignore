@@ -1,0 +1,11 @@
+node_modules
+.next
+.env
+storage/*
+!storage/.gitkeep
+*.tsbuildinfo
+next-env.d.ts
+.next-*
+.env.backup*
+.claude/
+.DS_Store

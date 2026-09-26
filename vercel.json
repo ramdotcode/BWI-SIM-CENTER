@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "regions": ["sin1"],
+  "crons": [
+    { "path": "/api/jobs/generate-slots", "schedule": "10 17 * * *" },
+    { "path": "/api/jobs/expire-invoices", "schedule": "20 17 * * *" },
+    { "path": "/api/jobs/cleanup", "schedule": "30 18 * * *" },
+    { "path": "/api/jobs/session-reminders-h0", "schedule": "0 1 * * *" },
+    { "path": "/api/jobs/invoice-reminders", "schedule": "0 2 * * *" },
+    { "path": "/api/jobs/session-reminders-h1", "schedule": "0 10 * * *" },
+    { "path": "/api/jobs/deactivate-tokens", "schedule": "0 19 * * 0" }
+  ]
+}

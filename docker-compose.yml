@@ -1,0 +1,17 @@
+# Layanan pendukung untuk development lokal.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: bwi
+      POSTGRES_PASSWORD: bwi
+      POSTGRES_DB: bwi_sim
+      TZ: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+    ports: ["127.0.0.1:55433:5432"]
+    volumes: [bwi_pg:/var/lib/postgresql/data]
+  mail:
+    image: axllent/mailpit:latest
+    ports: ["127.0.0.1:1026:1025", "127.0.0.1:8026:8025"]
+volumes:
+  bwi_pg: {}
