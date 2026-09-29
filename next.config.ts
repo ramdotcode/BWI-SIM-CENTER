@@ -13,7 +13,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   distDir: process.env.NEXT_DIST_DIR || ".next",
   // Font & logo dibaca dari disk saat membuat PDF/email → wajib ikut ke fungsi Vercel.
-  outputFileTracingIncludes: { "/api/**": ["./assets/fonts/**", "./public/brand/**"] },
+  // pdfkit memuat font standar lewat require dinamis ("#standard-fonts/…") yang tidak terlacak otomatis.
+  outputFileTracingIncludes: { "/api/**": ["./assets/fonts/**", "./public/brand/**", "./node_modules/pdfkit/js/standard-fonts/**", "./node_modules/pdfkit/js/data/**"] },
   serverExternalPackages: ["@react-pdf/renderer", "exceljs", "sharp", "pg", "node-cron", "nodemailer"],
   experimental: { serverActions: { bodySizeLimit: "6mb" } },
   async headers() {
