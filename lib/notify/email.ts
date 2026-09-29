@@ -7,6 +7,8 @@ const g = globalThis as unknown as { __mailer?: Transporter };
 function transport(): Transporter {
   if (g.__mailer) return g.__mailer;
   const url = process.env.SMTP_URL;
+  // Jangan sertakan isi SMTP_URL di pesan error: berisi kredensial dan errornya disimpan di tabel notifications.
+  if (url && !/^smtps?:\/\/\S+$/.test(url)) throw new Error("SMTP_URL tidak valid: harus berbentuk smtps://user:password@host:port");
   g.__mailer = url ? nodemailer.createTransport(url) : nodemailer.createTransport({ jsonTransport: true });
   return g.__mailer;
 }
