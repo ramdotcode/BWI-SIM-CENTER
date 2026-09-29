@@ -44,6 +44,8 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
   const router = useRouter();
   const toast = useToast();
   const [menu, setMenu] = useState(false);
+  // Menu dirender position:fixed agar tidak terpotong oleh .tbl (overflow-x:auto).
+  const [pos, setPos] = useState<{ top: number | "auto"; bottom: number | "auto"; right: number }>({ top: 0, bottom: "auto", right: 0 });
   const [modal, setModal] = useState<null | "paid" | "wa" | "react" | "cancel">(inv.open && ["UNPAID", "AWAITING_VERIFICATION", "OVERDUE"].includes(inv.status) ? "paid" : null);
   const [busy, setBusy] = useState(false);
   const [amount, setAmount] = useState(String(inv.amount_received ?? inv.total));
@@ -59,9 +61,22 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
   useEffect(() => {
     if (!menu) return;
     const h = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setMenu(false);
+    const close = () => setMenu(false);
     document.addEventListener("mousedown", h);
-    return () => document.removeEventListener("mousedown", h);
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    return () => {
+      document.removeEventListener("mousedown", h);
+      window.removeEventListener("scroll", close, true);
+      window.removeEventListener("resize", close);
+    };
   }, [menu]);
+  const toggleMenu = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const right = Math.max(8, window.innerWidth - r.right);
+    setPos(window.innerHeight - r.bottom < 320 ? { top: "auto", bottom: window.innerHeight - r.top + 4, right } : { top: r.bottom + 4, bottom: "auto", right });
+    setMenu((m) => !m);
+  };
 
   const run = async (fn: () => Promise<string | void>) => {
     setBusy(true);
@@ -92,9 +107,9 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
     <div className="row" style={{ gap: 6, justifyContent: "flex-end" }}>
       {primary}
       <div className="menu" ref={ref}>
-        <button className="btn xs ghost" aria-haspopup="menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}>⋯</button>
+        <button className="btn xs ghost" aria-haspopup="menu" aria-expanded={menu} onClick={toggleMenu}>⋯</button>
         {menu && (
-          <div className="pop" role="menu">
+          <div className="pop" role="menu" style={{ position: "fixed", ...pos }}>
             {open && <button onClick={() => { setModal("paid"); setMenu(false); }}>{t("markPaid")}</button>}
             {open && <button onClick={() => { setModal("wa"); setMenu(false); }}>{t("confirmWa")}</button>}
             {inv.status !== "CANCELLED" && inv.status !== "EXPIRED" && <button onClick={() => run(async () => { await api(`/api/admin/invoices/${inv.id}/resend`, { body: {} }); return t("toastResent"); })}>{t("resend")}</button>}
