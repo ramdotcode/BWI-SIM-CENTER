@@ -1,7 +1,7 @@
-# HANDOVER v2 — BUILD SPEC: BWI Sim Center (web booking simulator A320/B737)
+# HANDOVER v2.1 — BUILD SPEC: BWI Sim Center (web booking simulator A320/B737)
 
-> Ringkasan padat dari handover v2 yang dikirim user 26 Sep 2026 (bagian 0, 3, 7, 15, 16 hampir verbatim; bagian lain diringkas). Status implementasi & deviasi: lihat `README.md`.
-> Tujuan dokumen: **sesi/agen lain membangun web production-ready** dari nol tanpa membaca chat sebelumnya. Update: 26 Sep 2026. Status: desain & alur FINAL di sisi vendor; 12 pertanyaan client (bagian 15) belum dijawab — bangun dengan nilai default di sini, semua nilai itu harus **konfigurable** (env/tabel settings), bukan hardcode.
+> Ringkasan padat dari handover v2 yang dikirim user 26 Sep 2026, diperbarui ke **v2.1 (29 Sep 2026: tambah bagian 0a batasan komersial, verbatim)**. Bagian 0, 0a, 3, 7, 15, 16 hampir verbatim; bagian lain diringkas. Status implementasi & deviasi: lihat `README.md`.
+> Tujuan dokumen: **sesi/agen lain membangun web production-ready** dari nol tanpa membaca chat sebelumnya. Update: 29 Sep 2026 (v2.1). Status: desain & alur FINAL di sisi vendor; 12 pertanyaan client (bagian 15) belum dijawab — bangun dengan nilai default di sini, semua nilai itu harus **konfigurable** (env/tabel settings), bukan hardcode.
 
 ---
 
@@ -18,6 +18,17 @@ Prinsip yang tidak boleh dilanggar:
 6. UI **dwibahasa ID (default) / EN**, tema **terang**, jangan menyerupai LGTC (Lion Group Training Center).
 
 Referensi visual final (WAJIB dibaca sebelum coding UI): mockup klik-klik **https://claude.ai/artifact/QRcBzXy9465rkrwQVpLRVX** (15 layar, HTML tunggal). Dokumen alur naratif: **https://claude.ai/artifact/1pNqeKNzss7qXbJRA6cNep**.
+
+## 0a. Batasan komersial dari deal (WAJIB dibaca — detail di `docs/DEAL_bwi_sim_center_TnC.md`)
+Vendor: **Saptaloka Digital** (Barra). Klien: PT BWI Aviation. Invoice SD/INV/2026/09/001, nilai **Rp 20.000.000**, garansi 12 bulan. Konsekuensi untuk pembangunan:
+- **Waktu: 7 hari kerja** sejak desain disetujui + materi klien lengkap. Urutan kerja yang disarankan: H1 fondasi+skema+auth · H2 form+unggah+verifikasi · H3 invoice+PDF+email · H4 kalender admin+penjadwalan · H5 dashboard peserta+SSE+magic link · H6 keuangan+database+Excel+i18n EN · H7 pengecualian inti (E-01, E-02, E-05, E-06) + seed + deploy + siap UAT. Pengecualian lain (E-03, E-04, E-07–E-10) dan Tahap 7 (WA API, OTP) dikerjakan jika waktu tersisa; bila tidak, masuk masa garansi/pekerjaan tambahan.
+- **Biaya pihak ketiga tahun pertama keluar dari margin vendor** (domain, hosting+DB, storage, email pengirim) → pilih layanan hemat dengan tier yang bisa naik: Vercel Hobby/Pro, Neon atau Supabase free→pro, Cloudflare R2, Resend free tier. Semua akun **atas nama klien**. Catat setiap layanan (akun, biaya, tanggal jatuh tempo) di dokumen serah terima — klien membayar perpanjangan tahun ke-2.
+- **Garansi tidak mengubah struktur data** → kunci skema DB & kolom form sejak H1; perubahan setelah serah terima hanya lewat migrasi berversi atas permintaan tertulis + estimasi (Rp 200.000/jam). Setiap permintaan perubahan dari klien selama garansi: **estimasi dulu, jangan langsung implementasi.**
+- Semua nilai bisnis di tabel `settings` supaya perubahan konfigurasi tidak dihitung "ubah struktur data".
+- Serah terima wajib menyertakan: akses admin, kode sumber, kredensial layanan pihak ketiga + jatuh tempo, panduan admin, panduan backup/restore, dokumentasi deploy. Tag rilis `v1.0.0` = titik awal garansi.
+- UAT klien 10 hari kerja; 2 putaran revisi tampilan/teks dalam lingkup.
+
+Status di repo: lihat `docs/SERAH-TERIMA.md` (register layanan, checklist serah terima, aturan garansi).
 
 ## 1. Stack yang direkomendasikan
 Next.js 15 (App Router) + TypeScript · Tailwind CSS + komponen sendiri · PostgreSQL + Prisma · Auth.js credentials + bcrypt (sesi JWT httpOnly) · Magic link token (`access_tokens`) · S3-compatible private bucket + URL bertanda tangan · SMTP/Resend, template dwibahasa · WhatsApp fase 1 `wa.me` prefill (manual), fase 2 provider di balik interface `WaSender` · SSE `/api/realtime` + fallback polling 15 dtk · PDF `@react-pdf/renderer` · Excel `exceljs` · Job via cron → `/api/jobs/*` bersecret · i18n `next-intl` (`id` default, `en`, cookie `NEXT_LOCALE`) · validasi `zod` · deploy Node + Postgres managed, domain dummy `bwi-sim.id`.

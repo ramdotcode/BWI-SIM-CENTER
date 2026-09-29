@@ -1,10 +1,12 @@
 # BWI Sim Center
 
 Web booking simulator **FTD Airbus A320 & Boeing 737NG** — PT BWI Aviation Indonesia × Politeknik Penerbangan Indonesia Curug.
-Dibangun dari `docs/BUILD-SPEC-v2.md` (handover v2) dengan desain dari mockup artifact
+Dibangun dari `docs/BUILD-SPEC-v2.md` (handover v2.1) dengan desain dari mockup artifact
 [QRcBzXy9465rkrwQVpLRVX](https://claude.ai/artifact/QRcBzXy9465rkrwQVpLRVX).
 
 > **Semua data seed & nilai bisnis default adalah DUMMY.** Nilai bertanda Q1–Q12 menunggu konfirmasi client (lihat tabel di bawah) dan bisa diubah tanpa deploy di **Admin → Pengaturan** (Super Admin).
+
+> **Batasan komersial (`docs/DEAL_bwi_sim_center_TnC.md`):** lingkup = mockup v2 + Dokumen Alur v1; payment gateway, WA Business API, aplikasi mobile, akun peserta, integrasi pihak ketiga di luar lingkup; biaya layanan pihak ketiga tahun pertama ditanggung vendor, semua akun harus atas nama klien, skema DB & kolom form terkunci (perubahan = migrasi berversi + estimasi tertulis dulu), garansi 12 bulan sejak tag `v1.0.0`. Register layanan, checklist serah terima, aturan garansi, dan panduan backup/restore ada di **[`docs/SERAH-TERIMA.md`](docs/SERAH-TERIMA.md)**.
 
 ---
 
@@ -101,7 +103,7 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 - **Real-time**: koneksi SSE ditutup & tersambung ulang otomatis tiap ±5 menit (batas durasi fungsi); jika gagal, halaman beralih ke polling 15 detik. Event tetap sinkron antar-instance lewat Postgres `LISTEN/NOTIFY`.
 - **Rate limit** masih in-memory per instance (lebih longgar di serverless). Untuk produksi ketat, ganti `lib/rate-limit.ts` ke Upstash Redis.
 - Notifikasi (PDF + email) dijalankan setelah respons via `after()` (didukung Vercel).
-- Backup: database oleh Supabase (sesuai paket); objek R2 tidak ter-backup otomatis — aktifkan versi/salinan bila perlu.
+- Backup: Supabase Free **tidak** punya backup harian (Pro: 7 hari); objek R2 tidak ter-backup otomatis. Prosedur `pg_dump`/`rclone` & restore: `docs/SERAH-TERIMA.md` §4.
 
 ### Alternatif tanpa Vercel
 Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga didukung; di sana driver `local` (disk terenkripsi) boleh dipakai asal disk permanen & di-backup.
@@ -139,9 +141,10 @@ Dummy lain: rekening BCA 123-456-7890 a.n. PT BWI Aviation Indonesia, WA admin 0
 
 ## Belum dikerjakan / fase berikutnya
 
-- Q8 OTP WA saat link pertama dibuka; WA provider fase 2 (Fonnte disediakan sebagai contoh, belum diuji dengan akun riil).
+- Q8 OTP WA saat link pertama dibuka; WA provider fase 2 (Fonnte disediakan sebagai contoh, belum diuji dengan akun riil). **Menurut deal, WA Business API otomatis di luar lingkup** → hanya sebagai pekerjaan tambahan berbayar.
 - Generator PDF laporan sesi (saat ini admin mengunggah PDF laporan pada "Tandai hasil sesi").
 - Email ke admin (pendaftar baru) hanya berbahasa Indonesia.
+- Kelengkapan serah terima (spec 0a): `docs/PANDUAN-ADMIN.md`, pengisian register layanan & transfer akun ke klien, backup DB harian terjadwal, tag `v1.0.0` — lihat checklist di `docs/SERAH-TERIMA.md`.
 - Uji otomatis (unit/e2e) belum ada; alur 13 langkah & E-01…E-10 diuji manual (lihat di bawah).
 - Logo resolusi tinggi/SVG dari client (saat ini PNG hasil ekstrak mockup di `public/brand`).
 
