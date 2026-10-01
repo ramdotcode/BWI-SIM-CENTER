@@ -122,9 +122,9 @@
       "F": "Perempuan"
     },
     "prefTime": {
-      "MORNING": "Pagi (06.00–12.00)",
-      "AFTERNOON": "Siang (12.00–18.00)",
-      "EVENING": "Malam (18.00–22.00)",
+      "MORNING": "Sesi pagi",
+      "AFTERNOON": "Sesi siang",
+      "EVENING": "Malam (data lama)",
       "FLEXIBLE": "Fleksibel"
     },
     "prefTimeShort": {
@@ -224,7 +224,8 @@
     "usp3": "✓ Dashboard tanpa login, via link pribadi",
     "boardTitle": "Ketersediaan hari ini · {date}",
     "boardAria": "Papan ketersediaan hari ini",
-    "boardFoot": "Slot {h} jam · Operasional {start}–{end} WIB",
+    "boardFoot": "Sesi {h} jam · {days} {start}–{end} WIB",
+    "boardClosed": "Hari ini simulator tidak beroperasi. Lihat jadwal hari kerja berikutnya.",
     "cellFree": "TERSEDIA",
     "cellBusy": "TERISI",
     "cellMaint": "MAINT.",
@@ -858,9 +859,8 @@
       "level": "Level",
       "priceNote": "Perubahan harga tidak mengubah invoice yang sudah terbit (harga disalin saat pendaftaran).",
       "keys": {
-        "slot_minutes": "Durasi slot (menit)",
-        "ops_start": "Jam operasional mulai",
-        "ops_end": "Jam operasional selesai",
+        "session_times": "Jam sesi (per hari)",
+        "work_days": "Hari operasional",
         "slot_horizon_days": "Slot dibuat untuk N hari ke depan",
         "show_instructor_to_participant": "Tampilkan nama instruktur ke peserta",
         "reschedule_free_hours": "Batas reschedule gratis (jam sebelum sesi)",
@@ -893,7 +893,9 @@
         "default_locale": "Bahasa default publik"
       },
       "qNote": "Nilai bertanda Q# adalah asumsi dummy yang menunggu jawaban client (lihat README).",
-      "otpNote": "Belum diimplementasikan (fase 7, bila Q8 = ya)."
+      "otpNote": "Belum diimplementasikan (fase 7, bila Q8 = ya).",
+      "sessionsNote": "Format HH:MM-HH:MM, pisahkan koma. Semua sesi harus sama panjang; 1 sesi = 1 slot. Slot kosong mendatang yang tidak sesuai lagi akan dihapus, slot terisi tetap.",
+      "workDaysNote": "Tanggal merah diblok manual lewat Blok maintenance di Kelola jadwal."
     }
   },
   "email": {

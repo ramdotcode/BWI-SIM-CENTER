@@ -4,7 +4,7 @@ import "dotenv/config";
 import sharp from "sharp";
 import bcrypt from "bcryptjs";
 import { PrismaClient, type DocumentKind, type Prisma } from "@prisma/client";
-import { SETTING_DEFAULTS, slotStarts } from "../lib/settings";
+import { deriveSettings, isWorkDay, SETTING_DEFAULTS, slotsNeeded, slotStarts } from "../lib/settings";
 import { encryptString, hashToken, randomToken } from "../lib/crypto";
 import { addDays, dateOnly, todayJkt, wibInstant, ymd } from "../lib/format";
 import { storage } from "../lib/storage";
@@ -19,31 +19,31 @@ const PACKAGES = [
   {
     code: "ppc", sort: 1, hours: 4, price: 12_000_000n, highlight: false,
     name_id: "PPC – Pilot Proficiency Check", name_en: "PPC – Pilot Proficiency Check", short_id: "PPC", short_en: "PPC",
-    description_id: "Untuk perpanjangan/pemeriksaan kecakapan. 2 sesi × 2 jam, termasuk briefing & debriefing.",
-    description_en: "For proficiency renewal/check. 2 sessions × 2 h, including briefing & debriefing.",
-    bullets_id: ["2 sesi × 2 jam", "Briefing 30 mnt/sesi", "Instruktur type-rated", "Laporan sesi digital"],
-    bullets_en: ["2 sessions × 2 h", "30-min briefing per session", "Type-rated instructor", "Digital session report"],
+    description_id: "Untuk perpanjangan/pemeriksaan kecakapan. 1 sesi × 4 jam, termasuk briefing & debriefing.",
+    description_en: "For proficiency renewal/check. 1 session × 4 h, including briefing & debriefing.",
+    bullets_id: ["1 sesi × 4 jam", "Briefing 30 mnt/sesi", "Instruktur type-rated", "Laporan sesi digital"],
+    bullets_en: ["1 session × 4 h", "30-min briefing per session", "Type-rated instructor", "Digital session report"],
   },
   {
     code: "rec", sort: 2, hours: 8, price: 22_000_000n, highlight: true,
     name_id: "Recurrent Training", name_en: "Recurrent Training", short_id: "Recurrent", short_en: "Recurrent",
     description_id: "Penyegaran prosedur normal & abnormal.", description_en: "Refresher on normal & abnormal procedures.",
-    bullets_id: ["4 sesi × 2 jam", "Skenario abnormal/emergency", "LOFT 1 sesi", "Laporan sesi digital"],
-    bullets_en: ["4 sessions × 2 h", "Abnormal/emergency scenarios", "1 LOFT session", "Digital session report"],
+    bullets_id: ["2 sesi × 4 jam", "Skenario abnormal/emergency", "LOFT 1 sesi", "Laporan sesi digital"],
+    bullets_en: ["2 sessions × 4 h", "Abnormal/emergency scenarios", "1 LOFT session", "Digital session report"],
   },
   {
     code: "atpl", sort: 3, hours: 12, price: 32_000_000n, highlight: false,
     name_id: "ATPL Skill Test Preparation", name_en: "ATPL Skill Test Preparation", short_id: "ATPL Prep", short_en: "ATPL Prep",
     description_id: "Persiapan skill test ATPL / seleksi maskapai.", description_en: "Preparation for ATPL skill test / airline screening.",
-    bullets_id: ["6 sesi × 2 jam", "Profil ujian DGCA", "Mock check ride", "Debrief video"],
-    bullets_en: ["6 sessions × 2 h", "DGCA test profile", "Mock check ride", "Video debrief"],
+    bullets_id: ["3 sesi × 4 jam", "Profil ujian DGCA", "Mock check ride", "Debrief video"],
+    bullets_en: ["3 sessions × 4 h", "DGCA test profile", "Mock check ride", "Video debrief"],
   },
   {
     code: "trf", sort: 4, hours: 20, price: 52_000_000n, highlight: false,
     name_id: "Type Rating Familiarization", name_en: "Type Rating Familiarization", short_id: "TR Fam", short_en: "TR Fam",
     description_id: "Pengenalan sistem & prosedur sebelum type rating.", description_en: "Systems & procedures introduction before type rating.",
-    bullets_id: ["10 sesi × 2 jam", "Ground briefing FCOM", "Normal procedures lengkap", "Sertifikat kehadiran"],
-    bullets_en: ["10 sessions × 2 h", "FCOM ground briefing", "Complete normal procedures", "Certificate of attendance"],
+    bullets_id: ["5 sesi × 4 jam", "Ground briefing FCOM", "Normal procedures lengkap", "Sertifikat kehadiran"],
+    bullets_en: ["5 sessions × 4 h", "FCOM ground briefing", "Complete normal procedures", "Certificate of attendance"],
   },
 ];
 
@@ -107,7 +107,7 @@ async function demo() {
     console.log("• Data demo sudah ada, dilewati (jalankan npm run db:reset untuk mengulang).");
     return;
   }
-  const s = SETTING_DEFAULTS;
+  const s = deriveSettings(SETTING_DEFAULTS);
   const today = todayJkt();
   const sims = Object.fromEntries((await db.simulator.findMany()).map((x) => [x.code, x]));
   const pkgs = Object.fromEntries((await db.package.findMany()).map((x) => [x.code, x]));
@@ -121,7 +121,7 @@ async function demo() {
   const year = today.slice(0, 4);
   const from = `${year}-01-01`, to = addDays(today, s.slot_horizon_days);
   const data: Prisma.SlotCreateManyInput[] = [];
-  for (let d = from; d <= to; d = addDays(d, 1)) for (const sim of Object.values(sims)) for (const t of starts) data.push({ simulator_id: sim.id, date: dateOnly(d), start_time: t.start, end_time: t.end });
+  for (let d = from; d <= to; d = addDays(d, 1)) if (isWorkDay(s, d)) for (const sim of Object.values(sims)) for (const t of starts) data.push({ simulator_id: sim.id, date: dateOnly(d), start_time: t.start, end_time: t.end });
   await db.slot.createMany({ data, skipDuplicates: true });
 
   let regN = 0;
@@ -191,7 +191,7 @@ async function demo() {
       // Cari slot kosong mulai dari jam yang diminta (hindari bentrok antar data contoh).
       let target = null;
       for (let dd = 0; dd < 5 && !target; dd++) {
-        target = await db.slot.findFirst({ where: { simulator_id: sims[o.sim]!.id, date: dateOnly(addDays(sl.date, dd)), start_time: { gte: dd ? "06:00" : sl.start }, status: "AVAILABLE" }, orderBy: { start_time: "asc" } });
+        target = await db.slot.findFirst({ where: { simulator_id: sims[o.sim]!.id, date: dateOnly(addDays(sl.date, dd)), start_time: { gte: dd ? "00:00" : sl.start }, status: "AVAILABLE" }, orderBy: { start_time: "asc" } });
       }
       if (!target) continue;
       await db.slot.update({
@@ -205,6 +205,9 @@ async function demo() {
   const ago = (days: number, hh = "10:00") => wibInstant(addDays(today, -days), hh);
   const mon = (() => { const d = dateOnly(today); const dow = (d.getUTCDay() + 6) % 7; return addDays(today, -dow); })();
   const nextMon = addDays(mon, 7);
+  // Sesi pagi/siang (Q1: 07.30–11.30, 11.45–15.45) & geser tanggal contoh ke hari kerja terdekat.
+  const S0 = starts[0]!.start, S1 = (starts[1] ?? starts[0]!).start;
+  const wd = (d: string, dir: 1 | -1 = -1) => { while (!isWorkDay(s, d)) d = addDays(d, dir); return d; };
 
   // Riwayat bulan-bulan sebelumnya (untuk rekap keuangan): pendaftaran selesai & lunas.
   const month = Number(today.slice(5, 7));
@@ -218,22 +221,22 @@ async function demo() {
       const d0 = `${year}-${String(m).padStart(2, "0")}-${String(2 + i * 4).padStart(2, "0")}`;
       const sim = e % 5 < 3 ? "A320" : "B737";
       const pk = pkgCycle[e % pkgCycle.length]!;
-      const nSlots = pkgs[pk]!.hours / 2;
-      const slots = Array.from({ length: nSlots }, (_, j) => ({ date: addDays(d0, 3 + Math.floor(j / 2)), start: starts[1 + (j % 2) + (e % 4)]!.start, status: "COMPLETED" as const }));
+      const nSlots = slotsNeeded(pkgs[pk]!.hours, s.slot_minutes);
+      const slots = Array.from({ length: nSlots }, (_, j) => ({ date: addDays(d0, 3 + j), start: starts[(j + e) % starts.length]!.start, status: "COMPLETED" as const }));
       await makeReg({ p, sim, pkg: pk, createdAt: wibInstant(d0, "09:00"), status: "COMPLETED", invoice: { status: "PAID", issued: wibInstant(d0, "14:00"), paid: wibInstant(addDays(d0, 1), "10:00") }, slots, scheduleSent: true });
     }
   }
 
   // Putri — selesai bulan lalu
-  await makeReg({ p: PEOPLE[9]!, sim: "B737", pkg: "ppc", createdAt: ago(40), status: "COMPLETED", invoice: { status: "PAID", issued: ago(39), paid: ago(38) }, slots: [{ date: addDays(today, -33), start: "08:00", status: "COMPLETED" }, { date: addDays(today, -32), start: "08:00", status: "COMPLETED" }], scheduleSent: true, opened: true });
-  // Fajar — B737 Recurrent, 2 selesai + 2 mendatang, jadwal terkirim
-  await makeReg({ p: PEOPLE[7]!, sim: "B737", pkg: "rec", createdAt: ago(10), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(9), paid: ago(9, "15:00") }, slots: [{ date: addDays(today, -2), start: "14:00", status: "COMPLETED" }, { date: addDays(today, -1), start: "12:00", status: "COMPLETED" }, { date: addDays(nextMon, 3), start: "14:00", status: "SCHEDULED" }, { date: addDays(nextMon, 4), start: "14:00", status: "SCHEDULED" }], scheduleSent: true, opened: true });
-  // Maya — B737 ATPL Prep, 6 slot mendatang
-  await makeReg({ p: PEOPLE[8]!, sim: "B737", pkg: "atpl", createdAt: ago(11), status: "SCHEDULED", invoice: { status: "PAID", issued: ago(10), paid: ago(8) }, slots: [0, 1, 2].flatMap((d) => [{ date: addDays(nextMon, d), start: "10:00", status: "SCHEDULED" as const }, { date: addDays(nextMon, d), start: "12:00", status: "SCHEDULED" as const }]), scheduleSent: true, opened: true });
-  // Rizky — PPC A320, 1/2 selesai
-  await makeReg({ p: PEOPLE[6]!, sim: "A320", pkg: "ppc", createdAt: ago(8), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(8, "15:00"), paid: ago(7) }, slots: [{ date: addDays(today, -1), start: "08:00", status: "COMPLETED" }], scheduleSent: true, opened: true });
-  // Sari — A320 TR Fam 20 jam, 4/10 slot
-  await makeReg({ p: PEOPLE[5]!, sim: "A320", pkg: "trf", createdAt: ago(4), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(4, "12:00"), paid: ago(4, "16:00") }, slots: [{ date: addDays(today, -2), start: "10:00", status: "COMPLETED" }, { date: addDays(today, -1), start: "10:00", status: "COMPLETED" }, { date: addDays(nextMon, 1), start: "14:00", status: "SCHEDULED" }, { date: addDays(nextMon, 2), start: "14:00", status: "SCHEDULED" }], scheduleSent: true, opened: true });
+  await makeReg({ p: PEOPLE[9]!, sim: "B737", pkg: "ppc", createdAt: ago(40), status: "COMPLETED", invoice: { status: "PAID", issued: ago(39), paid: ago(38) }, slots: [{ date: wd(addDays(today, -33)), start: S0, status: "COMPLETED" }], scheduleSent: true, opened: true });
+  // Fajar — B737 Recurrent, 1 selesai + 1 mendatang, jadwal terkirim
+  await makeReg({ p: PEOPLE[7]!, sim: "B737", pkg: "rec", createdAt: ago(10), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(9), paid: ago(9, "15:00") }, slots: [{ date: wd(addDays(today, -2)), start: S1, status: "COMPLETED" }, { date: addDays(nextMon, 3), start: S1, status: "SCHEDULED" }], scheduleSent: true, opened: true });
+  // Maya — B737 ATPL Prep, 3 sesi mendatang
+  await makeReg({ p: PEOPLE[8]!, sim: "B737", pkg: "atpl", createdAt: ago(11), status: "SCHEDULED", invoice: { status: "PAID", issued: ago(10), paid: ago(8) }, slots: [0, 1, 2].map((d) => ({ date: addDays(nextMon, d), start: S0, status: "SCHEDULED" as const })), scheduleSent: true, opened: true });
+  // Rizky — Recurrent A320, 1/2 selesai
+  await makeReg({ p: PEOPLE[6]!, sim: "A320", pkg: "rec", createdAt: ago(8), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(8, "15:00"), paid: ago(7) }, slots: [{ date: wd(addDays(today, -1)), start: S0, status: "COMPLETED" }], scheduleSent: true, opened: true });
+  // Sari — A320 TR Fam 20 jam, 4/5 sesi
+  await makeReg({ p: PEOPLE[5]!, sim: "A320", pkg: "trf", createdAt: ago(4), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(4, "12:00"), paid: ago(4, "16:00") }, slots: [{ date: wd(addDays(today, -2)), start: S1, status: "COMPLETED" }, { date: wd(addDays(today, -1)), start: S1, status: "COMPLETED" }, { date: addDays(nextMon, 1), start: S0, status: "SCHEDULED" }, { date: addDays(nextMon, 3), start: S0, status: "SCHEDULED" }], scheduleSent: true, opened: true });
   // Yoga — invoice lewat tempo
   await makeReg({ p: PEOPLE[4]!, sim: "A320", pkg: "rec", createdAt: ago(6), status: "PENDING_PAYMENT", invoice: { status: "OVERDUE", issued: ago(5), overdue: true } });
   // Kevin — sudah konfirmasi WA, menunggu verifikasi bayar (EN)
@@ -247,7 +250,7 @@ async function demo() {
 
   // Terisi acak oleh peserta lain (tanpa pendaftaran nyata tidak diperbolehkan) → cukup dari data di atas.
   // Maintenance
-  for (const [sim, d, st, reason] of [["A320", addDays(nextMon, 2), ["18:00", "20:00"], "Visual system [DUMMY]"], ["A320", addDays(nextMon, 6), ["06:00", "08:00"], "Preventive maint. [DUMMY]"], ["B737", addDays(nextMon, 6), ["06:00", "08:00"], "Preventive maint. [DUMMY]"]] as const) {
+  for (const [sim, d, st, reason] of [["A320", addDays(nextMon, 2), [S1], "Visual system [DUMMY]"], ["A320", addDays(nextMon, 4), [S0, S1], "Preventive maint. [DUMMY]"], ["B737", addDays(nextMon, 4), [S0, S1], "Preventive maint. [DUMMY]"]] as const) {
     for (const t of st) await db.slot.update({ where: { simulator_id_date_start_time: { simulator_id: sims[sim]!.id, date: dateOnly(d), start_time: t } }, data: { status: "MAINTENANCE", maintenance_reason: reason } });
   }
 

@@ -3,10 +3,11 @@ import { addDays, dateOnly, dayShort, fmtTime } from "@/lib/format";
 
 export type CalCell = { cls: string; lab: string; sub?: string; clickable?: boolean; title?: string };
 
-/** Kalender mingguan Sen–Min × slot. Hari ini disorot, slot lampau dipudarkan (kelas "past" dari cellFor). */
+/** Kalender mingguan (hari kerja saja, default Sen–Min) × sesi. Hari ini disorot, slot lampau dipudarkan (kelas "past" dari cellFor). */
 export function WeekCalendar({
   monday,
   times,
+  workDays = [1, 2, 3, 4, 5, 6, 7],
   today,
   l,
   cellFor,
@@ -15,15 +16,16 @@ export function WeekCalendar({
 }: {
   monday: string;
   times: { start: string; end: string }[];
+  workDays?: number[]; // ISO 1 = Senin … 7 = Minggu
   today: string;
   l: "id" | "en";
   cellFor: (date: string, start: string) => CalCell;
   onCell?: (date: string, start: string) => void;
   flash?: string | null;
 }) {
-  const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i));
+  const days = Array.from({ length: 7 }, (_, i) => addDays(monday, i)).filter((_, i) => workDays.includes(i + 1));
   return (
-    <div className="cal" role="grid">
+    <div className="cal" role="grid" style={{ "--cols": days.length } as React.CSSProperties}>
       <div className="hdr" role="row">
         <div />
         {days.map((d) => {

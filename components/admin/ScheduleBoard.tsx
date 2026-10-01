@@ -146,7 +146,7 @@ export function ScheduleBoard(props: { initialWeek: AdminWeek; initialQueue: Que
                 <button className="btn xs ghost" onClick={() => setSel(null)}>✕</button>
               </div>
             )}
-            <WeekCalendar monday={week.monday} times={week.times} today={props.today} l={l} cellFor={cellFor} onCell={onCell} flash={flash} />
+            <WeekCalendar monday={week.monday} times={week.times} workDays={week.work_days} today={props.today} l={l} cellFor={cellFor} onCell={onCell} flash={flash} />
             <div className="row between wrap" style={{ marginTop: 14 }}>
               <div className="legend">
                 <span><i className="f" />{t("legendFree")}</span>

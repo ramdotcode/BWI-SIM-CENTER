@@ -122,9 +122,9 @@
       "F": "Female"
     },
     "prefTime": {
-      "MORNING": "Morning (06:00–12:00)",
-      "AFTERNOON": "Afternoon (12:00–18:00)",
-      "EVENING": "Evening (18:00–22:00)",
+      "MORNING": "Morning session",
+      "AFTERNOON": "Afternoon session",
+      "EVENING": "Evening (legacy)",
       "FLEXIBLE": "Flexible"
     },
     "prefTimeShort": {
@@ -224,7 +224,8 @@
     "usp3": "✓ No-login dashboard via a private link",
     "boardTitle": "Availability today · {date}",
     "boardAria": "Today's availability board",
-    "boardFoot": "{h}-hour slots · Operating {start}–{end} WIB",
+    "boardFoot": "{h}-hour sessions · {days} {start}–{end} WIB",
+    "boardClosed": "The simulators are closed today. See the next working day's schedule.",
     "cellFree": "AVAILABLE",
     "cellBusy": "BOOKED",
     "cellMaint": "MAINT.",
@@ -858,9 +859,8 @@
       "level": "Level",
       "priceNote": "Price changes do not affect invoices already issued (prices are copied at registration).",
       "keys": {
-        "slot_minutes": "Slot duration (minutes)",
-        "ops_start": "Operating hours start",
-        "ops_end": "Operating hours end",
+        "session_times": "Session times (per day)",
+        "work_days": "Operating days",
         "slot_horizon_days": "Generate slots N days ahead",
         "show_instructor_to_participant": "Show instructor name to participants",
         "reschedule_free_hours": "Free reschedule limit (hours before session)",
@@ -893,7 +893,9 @@
         "default_locale": "Default public language"
       },
       "qNote": "Values marked Q# are dummy assumptions awaiting the client's answer (see README).",
-      "otpNote": "Not implemented yet (phase 7, if Q8 = yes)."
+      "otpNote": "Not implemented yet (phase 7, if Q8 = yes).",
+      "sessionsNote": "Format HH:MM-HH:MM, comma-separated. All sessions must be the same length; 1 session = 1 slot. Future empty slots that no longer match are removed; booked slots are kept.",
+      "workDaysNote": "Block public holidays manually via Block maintenance in the schedule."
     }
   },
   "email": {

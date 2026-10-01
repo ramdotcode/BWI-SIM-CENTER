@@ -20,6 +20,14 @@ const MONTHS_LONG = {
 
 export const dayShort = (i: number, l: Loc) => DAYS[l][i];
 export const monthShort = (i: number, l: Loc) => MONTHS[l][i];
+/** Hari kerja ISO (1 = Senin … 7 = Minggu) → "Sen–Jum" bila berurutan, selain itu "Sen, Rab, Jum". */
+export function workDaysLabel(days: number[], l: Loc): string {
+  const d = [...days].sort((a, b) => a - b);
+  const name = (x: number) => DAYS[l][x % 7];
+  if (!d.length) return "";
+  const contiguous = d.every((x, i) => i === 0 || x === d[i - 1]! + 1);
+  return contiguous && d.length > 2 ? `${name(d[0]!)}–${name(d.at(-1)!)}` : d.map(name).join(", ");
+}
 export const monthLong = (i: number, l: Loc) => MONTHS_LONG[l][i];
 
 /** Tanggal kalender WIB sekarang, "YYYY-MM-DD". */

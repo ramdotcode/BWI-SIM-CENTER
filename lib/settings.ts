@@ -6,9 +6,9 @@ import { db } from "./db";
  * Nilai default di bawah = asumsi DUMMY yang menunggu konfirmasi client (Q1–Q12, lihat README).
  */
 export const SETTING_DEFAULTS = {
-  slot_minutes: 120, // Q1
-  ops_start: "06:00", // Q1
-  ops_end: "22:00", // Q1
+  // Q1 (dijawab klien 1 Okt 2026): 2 sesi/hari, Senin–Jumat. Semua sesi harus sama panjang.
+  session_times: ["07:30-11:30", "11:45-15:45"] as string[],
+  work_days: [1, 2, 3, 4, 5] as number[], // ISO: 1 = Senin … 7 = Minggu
   show_instructor_to_participant: true, // Q2
   invoice_due_days: 3, // Q3
   invoice_expire_days: 3, // Q3
@@ -41,14 +41,14 @@ export const SETTING_DEFAULTS = {
   office_hours: "08.00–17.00 WIB",
 };
 
-export type Settings = typeof SETTING_DEFAULTS;
-export type SettingKey = keyof Settings;
+export type SettingKey = keyof typeof SETTING_DEFAULTS;
+/** Nilai turunan dari session_times (tidak disimpan): durasi sesi & rentang jam operasional. */
+export type Settings = typeof SETTING_DEFAULTS & { slot_minutes: number; ops_start: string; ops_end: string };
 
 /** Label & tipe untuk halaman Pengaturan (SA). `q` = nomor pertanyaan client. */
-export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boolean" | "time" | "enum" | "list"; group: string; q?: string; options?: string[] }> = {
-  slot_minutes: { type: "number", group: "ops", q: "Q1" },
-  ops_start: { type: "time", group: "ops", q: "Q1" },
-  ops_end: { type: "time", group: "ops", q: "Q1" },
+export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boolean" | "time" | "enum" | "list" | "sessions" | "days"; group: string; q?: string; options?: string[] }> = {
+  session_times: { type: "sessions", group: "ops" }, // Q1 dijawab klien 1 Okt 2026
+  work_days: { type: "days", group: "ops" },
   slot_horizon_days: { type: "number", group: "ops" },
   show_instructor_to_participant: { type: "boolean", group: "ops", q: "Q2" },
   reschedule_free_hours: { type: "number", group: "ops", q: "Q5" },
@@ -88,8 +88,15 @@ export async function getSettings(fresh = false): Promise<Settings> {
   const rows = await db.setting.findMany();
   const v = { ...SETTING_DEFAULTS } as Record<string, unknown>;
   for (const r of rows) if (r.key in v) v[r.key] = r.value;
-  g.__settings = { at: Date.now(), v: v as Settings };
-  return v as Settings;
+  const out = deriveSettings(v as typeof SETTING_DEFAULTS);
+  g.__settings = { at: Date.now(), v: out };
+  return out;
+}
+
+export function deriveSettings(base: typeof SETTING_DEFAULTS): Settings {
+  const ss = parseSessions(base.session_times);
+  const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
+  return { ...base, slot_minutes: ss.length ? toMin(ss[0]!.end) - toMin(ss[0]!.start) : 0, ops_start: ss[0]?.start ?? "00:00", ops_end: ss.at(-1)?.end ?? "00:00" };
 }
 
 export async function setSettings(patch: Partial<Settings>) {
@@ -100,13 +107,24 @@ export async function setSettings(patch: Partial<Settings>) {
   g.__settings = undefined;
 }
 
-/** Jam-jam mulai slot per hari, mis. ["06:00","08:00",…,"20:00"] */
-export function slotStarts(s: Pick<Settings, "slot_minutes" | "ops_start" | "ops_end">): { start: string; end: string }[] {
-  const toMin = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
-  const fmt = (m: number) => `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`;
-  const out: { start: string; end: string }[] = [];
-  for (let m = toMin(s.ops_start); m + s.slot_minutes <= toMin(s.ops_end); m += s.slot_minutes) out.push({ start: fmt(m), end: fmt(m + s.slot_minutes) });
-  return out;
+/** "07:30-11:30" → { start, end }, urut jam mulai. Entri yang formatnya salah diabaikan. */
+export function parseSessions(list: string[]): { start: string; end: string }[] {
+  return list
+    .map((x) => /^(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})$/.exec(x.trim()))
+    .filter((m): m is RegExpExecArray => !!m)
+    .map((m) => ({ start: m[1]!, end: m[2]! }))
+    .sort((a, b) => a.start.localeCompare(b.start));
+}
+
+/** Sesi per hari dari setting session_times, mis. [{ start: "07:30", end: "11:30" }, …] */
+export function slotStarts(s: Pick<Settings, "session_times">): { start: string; end: string }[] {
+  return parseSessions(s.session_times);
+}
+
+/** Hari operasional? `date` = "YYYY-MM-DD" (tanggal Asia/Jakarta). */
+export function isWorkDay(s: Pick<Settings, "work_days">, date: string): boolean {
+  const dow = new Date(`${date}T00:00:00Z`).getUTCDay() || 7;
+  return s.work_days.includes(dow);
 }
 
 export function slotsNeeded(hours: number, slotMinutes: number): number {

@@ -255,7 +255,7 @@ export function ParticipantDashboard({ token, initial }: { token: string; initia
             <WeekNav monday={week.monday} l={l} onChange={(m) => loadWeek(sim, m)} prevLabel={tc("prevWeek")} nextLabel={tc("nextWeek")} />
           </div>
           <div className="bd">
-            <WeekCalendar monday={week.monday} times={week.times} today={d.today} l={l} cellFor={cellFor} flash={flash} />
+            <WeekCalendar monday={week.monday} times={week.times} workDays={week.work_days} today={d.today} l={l} cellFor={cellFor} flash={flash} />
             <div className="row between wrap" style={{ marginTop: 14 }}>
               <div className="legend">
                 <span><i className="f" />{t("legendFree")}</span>

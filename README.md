@@ -114,7 +114,7 @@ Semua tersimpan di tabel `settings` dan bisa diubah di Admin → Pengaturan.
 
 | # | Setting | Default dummy | Pertanyaan |
 |---|---|---|---|
-| Q1 | `slot_minutes`, `ops_start`, `ops_end` | 120, 06:00–22:00 | Durasi slot & jam operasional? |
+| Q1 | `session_times`, `work_days` | **Dijawab klien 1 Okt 2026:** 07:30–11:30 & 11:45–15:45, Senin–Jumat (1 sesi = 1 slot 4 jam) | Masih dikonfirmasi: 4 jam sudah termasuk briefing? Tanggal merah diblok manual (maintenance) |
 | Q2 | `show_instructor_to_participant` | true | Nama instruktur ditampilkan ke peserta? |
 | Q3 | `invoice_due_days`, `invoice_expire_days` | 3, 3 | Jatuh tempo & kedaluwarsa? |
 | Q4 | `vat_percent` | 0 | PPN? |

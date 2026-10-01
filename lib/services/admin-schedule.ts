@@ -1,8 +1,8 @@
 import "server-only";
 import { db } from "../db";
-import { getSettings, slotStarts } from "../settings";
+import { getSettings } from "../settings";
 import { addDays, dateOnly, shortName, ymd } from "../format";
-import { isPast, schedulingQueue, weekSlots } from "./slots";
+import { calendarAxes, isPast, schedulingQueue, weekSlots } from "./slots";
 
 export async function adminWeek(sim: string, monday: string) {
   const s = await getSettings();
@@ -10,7 +10,7 @@ export async function adminWeek(sim: string, monday: string) {
   return {
     monday,
     sim,
-    times: slotStarts(s),
+    ...calendarAxes(s, slots),
     slots: slots.map((x) => ({
       id: x.id,
       date: ymd(x.date),

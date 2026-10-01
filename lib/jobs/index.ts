@@ -6,14 +6,15 @@ import { addDays, dateOnly, fmtTime, todayJkt, nowTimeJkt, fmtDate } from "../fo
 import { notify } from "../notify";
 import { publish } from "../realtime";
 import { storage } from "../storage";
-import { ensureSlots } from "../services/slots";
+import { ensureSlots, pruneSlots } from "../services/slots";
 
-/** generate-slots — harian 00:10 WIB: slot N hari ke depan untuk simulator aktif. */
+/** generate-slots — harian 00:10 WIB: slot N hari kerja ke depan untuk simulator aktif + bersihkan slot kosong yang tidak sesuai setting. */
 export async function generateSlots() {
   const s = await getSettings(true);
   const today = todayJkt();
+  const removed = await pruneSlots(s);
   const n = await ensureSlots(today, addDays(today, s.slot_horizon_days), s);
-  return { checked: n };
+  return { checked: n, removed };
 }
 
 /** invoice-reminders — harian 09:00: H-1 jatuh tempo, masih UNPAID/AWAITING → invoice_reminder. */

@@ -2,7 +2,7 @@ import "server-only";
 import type { Prisma, SlotStatus } from "@prisma/client";
 import { db, type DbOrTx, type Tx } from "../db";
 import { HttpError, type AdminCtx } from "../auth";
-import { getSettings, slotStarts, slotsNeeded, type Settings } from "../settings";
+import { getSettings, isWorkDay, slotStarts, slotsNeeded, type Settings } from "../settings";
 import { logActivity } from "../activity";
 import { addDays, dateOnly, fmtDate, fmtTime, shortName, todayJkt, wibInstant, ymd } from "../format";
 import { notify } from "../notify";
@@ -22,9 +22,26 @@ export async function ensureSlots(from: string, to: string, s?: Settings) {
   const sims = await db.simulator.findMany({ where: { active: true } });
   const starts = slotStarts(s);
   const data: Prisma.SlotCreateManyInput[] = [];
-  for (let d = from; d <= to; d = addDays(d, 1)) for (const sim of sims) for (const t of starts) data.push({ simulator_id: sim.id, date: dateOnly(d), start_time: t.start, end_time: t.end });
+  for (let d = from; d <= to; d = addDays(d, 1)) {
+    if (!isWorkDay(s, d)) continue;
+    for (const sim of sims) for (const t of starts) data.push({ simulator_id: sim.id, date: dateOnly(d), start_time: t.start, end_time: t.end });
+  }
   if (data.length) await db.slot.createMany({ data, skipDuplicates: true });
   return data.length;
+}
+
+/**
+ * Hapus slot mendatang yang masih kosong tetapi tidak lagi sesuai jam sesi / hari kerja
+ * (mis. setelah session_times atau work_days diubah). Slot terisi, maintenance, atau yang punya riwayat tidak disentuh.
+ */
+export async function pruneSlots(s?: Settings) {
+  s ??= await getSettings(true);
+  const starts = slotStarts(s).map((t) => t.start);
+  return db.$executeRaw`
+    DELETE FROM slots sl
+    WHERE sl.status = 'AVAILABLE' AND sl.registration_id IS NULL AND sl.date >= ${todayJkt()}::date
+      AND (NOT (sl.start_time = ANY(${starts}::text[])) OR NOT (EXTRACT(ISODOW FROM sl.date)::int = ANY(${s.work_days}::int[])))
+      AND NOT EXISTS (SELECT 1 FROM slot_history h WHERE h.slot_id = sl.id)`;
 }
 
 export async function weekSlots(simCode: string, monday: string) {
@@ -37,8 +54,22 @@ export async function weekSlots(simCode: string, monday: string) {
     include: slotInclude,
     orderBy: [{ date: "asc" }, { start_time: "asc" }],
   });
-  // Slot di luar jam operasional sekarang (mis. setting berubah) tetap tampil hanya jika terisi.
-  return slots.filter((x) => starts.has(x.start_time) || x.status !== "AVAILABLE");
+  // Slot di luar jam sesi / hari kerja sekarang (mis. setting berubah) tetap tampil hanya jika terisi.
+  return slots.filter((x) => (starts.has(x.start_time) && isWorkDay(s, ymd(x.date))) || x.status !== "AVAILABLE");
+}
+
+/**
+ * Baris jam & kolom hari untuk kalender mingguan: sesi + hari kerja dari setting, ditambah jam/hari
+ * dari slot terisi yang tidak lagi sesuai setting (mis. setelah jam sesi diubah) agar tetap terlihat.
+ */
+export function calendarAxes(s: Settings, slots: { date: Date; start_time: string; end_time: string }[]) {
+  const times = new Map(slotStarts(s).map((t) => [t.start, t]));
+  const days = new Set(s.work_days);
+  for (const x of slots) {
+    if (!times.has(x.start_time)) times.set(x.start_time, { start: x.start_time, end: x.end_time });
+    days.add(x.date.getUTCDay() || 7);
+  }
+  return { times: [...times.values()].sort((a, b) => a.start.localeCompare(b.start)), work_days: [...days].sort((a, b) => a - b) };
 }
 
 export function isPast(slot: { date: Date; start_time: string }, now = new Date()) {

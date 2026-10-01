@@ -1,17 +1,18 @@
 "use client";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/lib/i18n/navigation";
 import { Modal } from "../Overlay";
 import { useToast } from "../Toast";
 import { api } from "../upload";
-import { rupiah } from "@/lib/format";
+import { dayShort, rupiah } from "@/lib/format";
 
 type Meta = { type: string; group: string; q?: string; options?: string[] };
 
 export function SettingsForm({ values, meta }: { values: Record<string, unknown>; meta: Record<string, Meta> }) {
   const t = useTranslations("admin.settings");
   const tc = useTranslations("common");
+  const l = useLocale() as "id" | "en";
   const toast = useToast();
   const router = useRouter();
   const [v, setV] = useState<Record<string, unknown>>(values);
@@ -37,10 +38,12 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
           <div className="fgrid">
             {Object.entries(meta)
               .filter(([, m]) => m.group === g)
-              .map(([k, m]) => (
-                <label className="field" key={k}>
+              .map(([k, m]) => {
+                const Field = m.type === "days" ? "div" : "label"; // tombol di dalam <label> ikut terpicu saat label diklik
+                return (
+                <Field className="field" key={k}>
                   <span className="flabel">
-                    {t(`keys.${k}` as "keys.slot_minutes")} {m.q && <span className="pill warn xs" title={t("pending")}>{m.q}</span>}
+                    {t(`keys.${k}` as "keys.session_times")} {m.q && <span className="pill warn xs" title={t("pending")}>{m.q}</span>}
                   </span>
                   {m.type === "boolean" ? (
                     <button type="button" className={`switch ${v[k] ? "on" : ""}`} aria-pressed={!!v[k]} onClick={() => setV({ ...v, [k]: !v[k] })} />
@@ -48,14 +51,31 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
                     <select className="in" value={String(v[k])} onChange={(e) => setV({ ...v, [k]: e.target.value })}>
                       {m.options!.map((o) => <option key={o} value={o}>{o}</option>)}
                     </select>
+                  ) : m.type === "days" ? (
+                    <div className="chips" role="group">
+                      {[1, 2, 3, 4, 5, 6, 7].map((d) => {
+                        const cur = v[k] as number[];
+                        const on = cur.includes(d);
+                        return (
+                          <button type="button" key={d} className={`chk ${on ? "on" : ""}`} aria-pressed={on} onClick={() => setV({ ...v, [k]: on ? cur.filter((x) => x !== d) : [...cur, d].sort() })}>
+                            {dayShort(d % 7, l)}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : m.type === "sessions" ? (
+                    <input className="in mono" value={(v[k] as string[]).join(", ")} onChange={(e) => setV({ ...v, [k]: e.target.value.split(",").map((x) => x.trim()) })} />
                   ) : m.type === "list" ? (
                     <input className="in" value={(v[k] as string[]).join(", ")} onChange={(e) => setV({ ...v, [k]: e.target.value.split(",").map((x) => x.trim()) })} />
                   ) : (
                     <input className={`in ${m.type === "number" || m.type === "time" ? "mono" : ""}`} type={m.type === "time" ? "time" : "text"} inputMode={m.type === "number" ? "numeric" : undefined} value={String(v[k] ?? "")} onChange={(e) => setV({ ...v, [k]: m.type === "number" ? e.target.value.replace(/[^\d.]/g, "") : e.target.value })} />
                   )}
                   {k === "dashboard_otp" && <span className="hint">{t("otpNote")}</span>}
-                </label>
-              ))}
+                  {k === "session_times" && <span className="hint">{t("sessionsNote")}</span>}
+                  {k === "work_days" && <span className="hint">{t("workDaysNote")}</span>}
+                </Field>
+                );
+              })}
           </div>
         </div>
       ))}

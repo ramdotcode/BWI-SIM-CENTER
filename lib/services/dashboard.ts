@@ -1,9 +1,9 @@
 import "server-only";
 import { db } from "../db";
-import { getSettings, slotStarts } from "../settings";
+import { getSettings } from "../settings";
 import { addDays, dateOnly, mondayOf, todayJkt, ymd } from "../format";
 import { viewStatus, type PublicSlot } from "../slot-view";
-import { usage, weekSlots, isPast } from "./slots";
+import { calendarAxes, usage, weekSlots, isPast } from "./slots";
 import { invSlug } from "../ui";
 
 /** Kalender mingguan dari sudut pandang peserta (atau publik bila mine=null). Tanpa nama peserta lain. */
@@ -19,7 +19,7 @@ export async function participantWeek(simCode: string, monday: string, mine: num
     instructor: mine && x.registration_id === mine && s.show_instructor_to_participant ? (x.instructor?.name ?? null) : null,
     past: isPast(x),
   }));
-  return { monday, sim: simCode, times: slotStarts(s), slots: out };
+  return { monday, sim: simCode, ...calendarAxes(s, slots), slots: out };
 }
 
 export type FeedItem = { at: string; kind: "booked" | "freed" | "maint" | "maint_clear" | "mine" | "note"; sim?: string; date?: string; start?: string; text?: string };

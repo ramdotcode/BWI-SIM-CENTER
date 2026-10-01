@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "../db";
-import { getSettings, slotStarts } from "../settings";
+import { getSettings, isWorkDay, slotStarts } from "../settings";
 import { dateOnly, todayJkt } from "../format";
 import { ensureSlots, isPast } from "./slots";
 import { viewStatus, type ViewStatus } from "../slot-view";
@@ -12,7 +12,8 @@ export async function todayBoard() {
   await ensureSlots(today, today, s);
   const sims = await db.simulator.findMany({ where: { active: true }, orderBy: { code: "asc" } });
   const slots = await db.slot.findMany({ where: { date: dateOnly(today) }, include: { simulator: true } });
-  const rows = slotStarts(s).map((t) => ({
+  const closed = !isWorkDay(s, today);
+  const rows = (closed ? [] : slotStarts(s)).map((t) => ({
     start: t.start,
     end: t.end,
     cells: Object.fromEntries(
@@ -23,7 +24,7 @@ export async function todayBoard() {
       }),
     ) as Record<string, ViewStatus | "past">,
   }));
-  return { date: today, sims: sims.map((x) => x.code), rows, settings: { slot_minutes: s.slot_minutes, ops_start: s.ops_start, ops_end: s.ops_end } };
+  return { date: today, closed, sims: sims.map((x) => x.code), rows, settings: { slot_minutes: s.slot_minutes, ops_start: s.ops_start, ops_end: s.ops_end, work_days: s.work_days } };
 }
 export type TodayBoard = Awaited<ReturnType<typeof todayBoard>>;
 

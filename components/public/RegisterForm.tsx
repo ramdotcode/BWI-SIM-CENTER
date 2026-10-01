@@ -301,7 +301,7 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
               </div>
               <F k="pref_date_from" err={errors.pref_date_from} label={t("pref_date_from")}><input {...inp("pref_date_from")} type="date" /></F>
               <F k="pref_date_to" err={errors.pref_date_to} label={t("pref_date_to")}><input {...inp("pref_date_to")} type="date" /></F>
-              <F k="pref_time" err={errors.pref_time} label={t("pref_time")}>{sel("pref_time", ["MORNING", "AFTERNOON", "EVENING", "FLEXIBLE"], (o) => te(`prefTime.${o}` as "prefTime.MORNING"), false)}</F>
+              <F k="pref_time" err={errors.pref_time} label={t("pref_time")}>{sel("pref_time", ["MORNING", "AFTERNOON", "FLEXIBLE"], (o) => te(`prefTime.${o}` as "prefTime.MORNING"), false)}</F>
               <F k="purpose" err={errors.purpose} label={t("purpose")}>{sel("purpose", PURPOSES, (o) => te(`purpose.${o}` as "purpose.PPC"))}</F>
               <F k="notes" err={errors.notes} label={t("notes")} full><textarea {...inp("notes")} rows={3} maxLength={1000} /></F>
               {medWarn && <div className="callout full" style={{ gridColumn: "1/-1" }}>{t("medicalWarn", { date: fmtDate(v.medical_valid_until as string, l) })}</div>}

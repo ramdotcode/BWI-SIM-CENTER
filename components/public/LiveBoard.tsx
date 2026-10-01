@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRealtime } from "../useRealtime";
-import { dayShort, fmtTime, monthShort, dateOnly } from "@/lib/format";
+import { dayShort, fmtTime, monthShort, dateOnly, workDaysLabel } from "@/lib/format";
 import type { TodayBoard } from "@/lib/services/public";
 import type { ViewStatus } from "@/lib/slot-view";
 
@@ -42,6 +42,7 @@ export function LiveBoard({ initial }: { initial: TodayBoard }) {
           <span key={s} style={{ textAlign: "center" }}>{tc(`sim.${s}` as "sim.A320").toUpperCase()}</span>
         ))}
       </div>
+      {b.closed && <div className="rowb" style={{ display: "block", color: "#B9D3D9", fontSize: 13 }}>{t("boardClosed")}</div>}
       {b.rows.map((r) => (
         <div className="rowb" key={r.start}>
           <span className="t">{fmtTime(r.start, l)}</span>
@@ -56,7 +57,7 @@ export function LiveBoard({ initial }: { initial: TodayBoard }) {
         </div>
       ))}
       <div style={{ marginTop: 12, fontSize: 11.5, color: "#8FB0B8", fontFamily: "var(--mono)" }}>
-        {t("boardFoot", { h: b.settings.slot_minutes / 60, start: fmtTime(b.settings.ops_start, l), end: fmtTime(b.settings.ops_end, l) })}
+        {t("boardFoot", { h: b.settings.slot_minutes / 60, days: workDaysLabel(b.settings.work_days, l), start: fmtTime(b.settings.ops_start, l), end: fmtTime(b.settings.ops_end, l) })}
       </div>
     </div>
   );
