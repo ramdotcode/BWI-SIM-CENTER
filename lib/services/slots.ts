@@ -16,6 +16,12 @@ const slotInclude = {
 } satisfies Prisma.SlotInclude;
 export type SlotFull = Prisma.SlotGetPayload<{ include: typeof slotInclude }>;
 
+/** Versi ramping untuk kalender mingguan (diambil ulang berkala) — hanya kolom yang ditampilkan, hemat egress DB. */
+const weekInclude = {
+  instructor: { select: { name: true } },
+  registration: { select: { reg_no: true, hours_snapshot: true, participant: { select: { full_name: true, medical_valid_until: true } }, package: { select: { short_id: true } } } },
+} satisfies Prisma.SlotInclude;
+
 /** Buat slot AVAILABLE untuk rentang tanggal (idempotent). Dipakai lazy saat kalender dibuka & job harian. */
 export async function ensureSlots(from: string, to: string, s?: Settings) {
   s ??= await getSettings();
@@ -51,7 +57,7 @@ export async function weekSlots(simCode: string, monday: string) {
   const starts = new Set(slotStarts(s).map((t) => t.start));
   const slots = await db.slot.findMany({
     where: { simulator: { code: simCode }, date: { gte: dateOnly(monday), lte: dateOnly(sunday) } },
-    include: slotInclude,
+    include: weekInclude,
     orderBy: [{ date: "asc" }, { start_time: "asc" }],
   });
   // Slot di luar jam sesi / hari kerja sekarang (mis. setting berubah) tetap tampil hanya jika terisi.

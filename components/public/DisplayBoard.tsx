@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { useAgo, useRealtime } from "../useRealtime";
+import { agoText, REFRESH_MS, useAgo } from "../useRealtime";
 import { dateOnly, dayShort, fmtTime, monthShort, workDaysLabel } from "@/lib/format";
 import type { DisplayBoardData, DisplayCell } from "@/lib/services/display-board";
 
@@ -10,39 +10,48 @@ type WakeLock = { release: () => Promise<void> };
 
 /**
  * Mode Layar (CR-01): papan jadwal untuk TV/monitor. Tanpa login, hanya-baca.
- * Diperbarui lewat SSE publik (memicu ambil ulang data) + ambil ulang tiap menit agar status
- * "berlangsung/lewat" dan pergantian hari ikut berjalan walau tidak ada perubahan jadwal.
+ * Ambil ulang data tiap REFRESH_MS (default 15 menit, hemat kuota paket gratis) + tepat di jam mulai/selesai
+ * sesi & pergantian hari, agar status "berlangsung/lewat" dan tanggal tetap tepat waktu.
  */
 export function DisplayBoard({ token, initial, label }: { token: string; initial: DisplayBoardData; label: string }) {
   const t = useTranslations("display");
+  const tc = useTranslations("common");
   const l = useLocale() as "id" | "en";
   const [b, setB] = useState(initial);
   const [revoked, setRevoked] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [full, setFull] = useState(false);
   const wake = useRef<WakeLock | null>(null);
-  const pending = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [last, setLast] = useState(() => Date.now());
   const refetch = useCallback(async () => {
     try {
       const r = await fetch(`/api/layar/${encodeURIComponent(token)}`, { cache: "no-store" });
       if (r.status === 404) return setRevoked(true);
-      if (r.ok) setB(await r.json());
+      if (r.ok) {
+        setB(await r.json());
+        setLast(Date.now());
+      }
     } catch {}
   }, [token]);
-  // Banyak event beruntun (mis. isi otomatis beberapa slot) → cukup satu kali ambil ulang.
-  const soon = useCallback(() => {
-    if (pending.current) clearTimeout(pending.current);
-    pending.current = setTimeout(refetch, 800);
-  }, [refetch]);
-  const { last } = useRealtime("public", soon, refetch);
   const ago = useAgo(last);
 
   useEffect(() => {
     const clock = setInterval(() => setNow(new Date()), 1000);
-    const minute = setInterval(refetch, 60_000);
-    return () => { clearInterval(clock); clearInterval(minute); };
+    const periodic = setInterval(refetch, REFRESH_MS);
+    return () => { clearInterval(clock); clearInterval(periodic); };
   }, [refetch]);
+
+  // Ambil ulang tepat setelah jam mulai/selesai sesi berikutnya atau tengah malam (WIB).
+  useEffect(() => {
+    const at = (date: string, hhmm: string) => new Date(`${date}T${hhmm}:00+07:00`).getTime();
+    const tomorrow = new Date(at(b.today, "00:00") + 86_400_000).toISOString().slice(0, 10);
+    const marks = [...b.times.flatMap((x) => [at(b.today, x.start), at(b.today, x.end)]), at(tomorrow, "00:00")];
+    const next = marks.filter((m) => m > Date.now()).sort((a, z) => a - z)[0];
+    if (!next) return;
+    const h = setTimeout(refetch, Math.min(next - Date.now() + 5_000, 2_147_000_000));
+    return () => clearTimeout(h);
+  }, [b.today, b.times, last, refetch]);
 
   // Layar tetap menyala (Wake Lock) & status layar penuh.
   const lockScreen = useCallback(async () => {
@@ -164,7 +173,7 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
 
       <footer className="df">
         <span>{t("foot", { h: b.slotHours, days: workDaysLabel(b.workDays, l), start: fmtTime(b.opsStart, l), end: fmtTime(b.opsEnd, l) })}</span>
-        <span>{t("updated", { s: ago })}</span>
+        <span>{t("updated", { ago: agoText(ago, tc) })}</span>
       </footer>
     </div>
   );

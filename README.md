@@ -39,7 +39,7 @@ Skrip lain: `npm run typecheck`, `npm run lint`, `npm run build`, `npm run check
 | DB | PostgreSQL + Prisma 6 (`prisma/schema.prisma`, kolom snake_case = field form = kolom Excel) |
 | Auth admin | Sesi JWT HS256 (`jose`) di cookie httpOnly + bcrypt; middleware menjaga `/admin/**`, rute SA-only (`keuangan`, `database`, `pengaturan`) |
 | Akses peserta | Magic link `/d/{REG-…}-{random 24 byte}`; hanya hash SHA-256+pepper yang divalidasi; token juga disimpan terenkripsi agar bisa "kirim ulang" (token sama) |
-| Real-time | Postgres `LISTEN/NOTIFY` → SSE `/api/realtime?scope=public|admin|d:{token}` (data disamarkan per audiens) + fallback polling 15 dtk |
+| Pembaruan data | **Default: ambil ulang otomatis tiap 15 menit** (`NEXT_PUBLIC_REFRESH_MINUTES`) + langsung saat tab dibuka kembali; tanpa koneksi terbuka (hemat kuota paket gratis). Mode lama SSE (Postgres `LISTEN/NOTIFY` → `/api/realtime`) tetap tersedia via `NEXT_PUBLIC_REALTIME_MODE=sse` |
 | Dokumen | Storage privat: driver `local` (AES-256-GCM at-rest) atau `s3` (SSE); akses via URL bertanda tangan ≤ 5 menit; akses admin dicatat di `activity_log` |
 | Email | SMTP (nodemailer), template dwibahasa di `lib/notify/templates.ts`, lampiran PDF invoice/kuitansi & `.ics` |
 | WhatsApp | Fase 1 `MANUAL_PREFILL`: notifikasi berstatus `MANUAL` + tautan `wa.me` di panel Ringkasan admin. Fase 2: interface `WaSender` (contoh Fonnte, `WA_PROVIDER=fonnte`, `FONNTE_TOKEN`) |
@@ -100,7 +100,7 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 5. Seed pertama kali dari laptop dengan `.env` produksi: `SEED_DEMO=false npm run db:seed` (master data + akun admin; ganti kata sandi admin setelah login).
 
 ### Batasan di Vercel yang perlu diketahui
-- **Real-time**: koneksi SSE ditutup & tersambung ulang otomatis tiap ±5 menit (batas durasi fungsi); jika gagal, halaman beralih ke polling 15 detik. Event tetap sinkron antar-instance lewat Postgres `LISTEN/NOTIFY`.
+- **Pembaruan data (paket gratis)**: Vercel Hobby memberi fungsi memori tetap 2 GB dan kuota 360 GB-jam/bulan (≈ 6 jam server aktif/hari); memori dihitung selama ada request berjalan. Koneksi SSE yang dibiarkan terbuka (tab admin/TV seharian) akan menghabiskan kuota dan Hobby lalu **menghentikan aplikasi hingga 30 hari**. Karena itu default-nya ambil ulang tiap 15 menit + saat tab dibuka kembali (perkiraan 3 layar TV + 3 admin: < 50 rb invocation & < 10 GB-jam/bulan). Kueri yang diambil ulang (kalender mingguan, Mode Layar) dibuat ramping agar egress Supabase Free (5 GB) aman. Aksi admin sendiri tetap langsung terlihat. Cek **Vercel → Usage** berkala.
 - **Rate limit** masih in-memory per instance (lebih longgar di serverless). Untuk produksi ketat, ganti `lib/rate-limit.ts` ke Upstash Redis.
 - Notifikasi (PDF + email) dijalankan setelah respons via `after()` (didukung Vercel).
 - Backup: Supabase Free **tidak** punya backup harian (Pro: 7 hari); objek R2 tidak ter-backup otomatis. Prosedur `pg_dump`/`rclone` & restore: `docs/SERAH-TERIMA.md` §4.
@@ -143,10 +143,11 @@ Dummy lain: rekening BCA 123-456-7890 a.n. PT BWI Aviation Indonesia, WA admin 0
 2. **Unggah dokumen**: "URL bertanda tangan" mengarah ke endpoint server sendiri (`/api/public/uploads/put`, berlaku 10 menit), bukan langsung ke bucket, agar server bisa **mime sniffing, batas 5 MB, dan strip EXIF** sebelum menyimpan.
 3. **Template email** berupa fungsi TypeScript (HTML inline-style), bukan React Email/MJML.
 4. **Sheet Excel "Peserta" berisi 47 kolom**, bukan 42 seperti mockup: sesuai prinsip "field formulir = kolom Excel", ikut disertakan 5 field preferensi jadwal. Kolom bisa disembunyikan di halaman Database.
-8. **Isian "Balai kesehatan penerbangan" (`medical_center`) dihapus dari form & Excel** (1 Okt 2026, masukan penguji: membingungkan, opsional). Kolom database `participants.medical_center` sengaja dibiarkan (nullable, tidak dipakai) agar tidak perlu migrasi.
 5. **Job kedaluwarsa** mengikuti spec (UNPAID/AWAITING lewat tempo → OVERDUE), tetapi invoice yang **sudah punya konfirmasi WA/bukti** tidak otomatis dijadikan EXPIRED — diputuskan admin.
 6. **Notifikasi** dikirim setelah respons (`after()` Next.js) agar aksi admin tidak menunggu render PDF/SMTP; setiap kiriman tetap dicatat di `notifications`.
 7. Peserta lama (E-08): prefill data diri & lisensi setelah OTP email; **dokumen selalu wajib diunggah baru** per pendaftaran.
+8. **Isian "Balai kesehatan penerbangan" (`medical_center`) dihapus dari form & Excel** (1 Okt 2026, masukan penguji: membingungkan, opsional). Kolom database `participants.medical_center` sengaja dibiarkan (nullable, tidak dipakai) agar tidak perlu migrasi.
+9. **Pembaruan "real-time" diganti ambil ulang berkala (default 15 menit)** (2 Okt 2026, keputusan user: paket gratis; 2 sesi/hari tidak butuh pembaruan per detik). Spec meminta SSE + fallback polling; SSE tetap tersedia lewat `NEXT_PUBLIC_REALTIME_MODE=sse`. Label "LIVE" diganti "Update otomatis". Mode Layar juga mengambil ulang tepat di jam mulai/selesai sesi & tengah malam.
 
 ## Belum dikerjakan / fase berikutnya
 

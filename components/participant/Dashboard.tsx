@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { LangSwitch } from "../LangSwitch";
 import { WeekCalendar, WeekNav, type CalCell } from "../WeekCalendar";
-import { useAgo, useRealtime } from "../useRealtime";
+import { agoText, useAgo, useRealtime } from "../useRealtime";
 import type { DashboardData, FeedItem } from "@/lib/services/dashboard";
 import type { ViewStatus } from "@/lib/slot-view";
 import { dateOnly, dayShort, fmtDate, fmtDateTime, fmtTime, initials, monthShort, rupiah, shortName } from "@/lib/format";
@@ -69,7 +69,7 @@ export function ParticipantDashboard({ token, initial }: { token: string; initia
     refresh,
   );
   const ago = useAgo(last);
-  const agoTxt = ago < 3 ? tc("justNow") : tc("secAgo", { s: ago });
+  const agoTxt = agoText(ago, tc);
 
   const pkgName = l === "id" ? d.reg.pkg.id : d.reg.pkg.en;
   const pkgShort = l === "id" ? d.reg.pkg.short_id : d.reg.pkg.short_en;

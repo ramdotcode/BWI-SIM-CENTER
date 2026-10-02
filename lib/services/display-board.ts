@@ -23,7 +23,12 @@ export async function displayBoard(showNames: boolean, upcoming = 4) {
     db.simulator.findMany({ where: { active: true }, orderBy: { code: "asc" } }),
     db.slot.findMany({
       where: { date: { in: dates.map(dateOnly) } },
-      include: { instructor: true, registration: { include: { participant: true, package: true } } },
+      // Ramping: layar diambil ulang berkala — kirim hanya kolom yang ditampilkan.
+      select: {
+        simulator_id: true, date: true, start_time: true, status: true, maintenance_reason: true,
+        instructor: { select: { name: true } },
+        registration: { select: { participant: { select: { full_name: true } }, package: { select: { short_id: true } } } },
+      },
     }),
   ]);
   const times = slotStarts(s);
