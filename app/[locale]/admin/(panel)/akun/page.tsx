@@ -7,7 +7,7 @@ import { fmtShortTs, initials, relAgo } from "@/lib/format";
 import { REG_PILL } from "@/lib/ui";
 import { SearchBox } from "@/components/admin/FilterBar";
 import { AdminEditor, DisplayLinks, LinkActions } from "@/components/admin/AccountsClient";
-import { displaySeen, listDisplayLinks } from "@/lib/display";
+import { displayPath, displaySeen, listDisplayLinks } from "@/lib/display";
 
 export default async function Akun({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { locale } = await params;
@@ -34,7 +34,7 @@ export default async function Akun({ params, searchParams }: { params: Promise<{
   };
   const displays = tab === "layar" ? await (async () => {
     const [links, seen] = await Promise.all([listDisplayLinks(), displaySeen()]);
-    return links.map((x) => ({ id: x.id, label: x.label, show_names: x.show_names, created: fmtShortTs(new Date(x.created_at), l), seen: seen[x.id] ? fmtShortTs(new Date(seen[x.id]!), l) : null }));
+    return links.map((x) => ({ id: x.id, label: x.label, show_names: x.show_names, path: displayPath(x), created: fmtShortTs(new Date(x.created_at), l), seen: seen[x.id] ? fmtShortTs(new Date(seen[x.id]!), l) : null }));
   })() : [];
   const tick = (v: string) => (v === "✓" ? <b style={{ color: "var(--ok)" }}>✓</b> : <span className={v === "—" ? "faint" : "small"}>{v}</span>);
 

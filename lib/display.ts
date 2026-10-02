@@ -1,5 +1,5 @@
 import "server-only";
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { db } from "./db";
 import type { AdminCtx } from "./auth";
 import { HttpError } from "./auth";
@@ -11,6 +11,8 @@ import { appUrl } from "./tokens";
  * Link "Mode Layar" (CR-01): papan jadwal real-time untuk TV/monitor, tanpa login.
  * Disimpan di tabel settings (key display_links) agar tidak menambah tabel/migrasi.
  * Token mentah hanya ada di URL; yang dicocokkan hash-nya. Salinan terenkripsi dipakai untuk "Salin link".
+ * Link tanpa nama memakai kode pendek yang mudah diketik di TV ("lobi-7k2m") — isinya informasi publik (sama dengan
+ * papan ketersediaan di halaman depan). Link dengan nama peserta tetap memakai token acak panjang.
  * Waktu terakhir aktif disimpan terpisah (display_seen) supaya polling layar tidak menimpa daftar link.
  */
 export type DisplayLink = { id: string; label: string; show_names: boolean; hash: string; enc: string; created_at: string; created_by: number };
@@ -33,8 +35,16 @@ async function save(list: DisplayLink[]) {
 
 export const displayUrl = (raw: string, locale: "id" | "en" = "id") => appUrl(`/layar/${raw}`, locale);
 
+const SHORT_ALPHABET = "23456789abcdefghjkmnpqrstuvwxyz"; // tanpa 0/o, 1/l/i agar tidak salah ketik
+function shortCode(label: string): string {
+  const slug = label.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 20).replace(/-+$/, "") || "layar";
+  return `${slug}-${Array.from({ length: 4 }, () => SHORT_ALPHABET[randomInt(SHORT_ALPHABET.length)]).join("")}`;
+}
+
 export async function createDisplayLink(admin: AdminCtx, input: { label: string; show_names: boolean }) {
-  const raw = randomToken(24);
+  const existing = new Set((await listDisplayLinks()).map((x) => x.hash));
+  let raw = input.show_names ? randomToken(24) : shortCode(input.label);
+  while (existing.has(hashToken(raw))) raw = shortCode(input.label);
   const link: DisplayLink = { id: randomUUID().slice(0, 8), label: input.label.trim().slice(0, 60), show_names: input.show_names, hash: hashToken(raw), enc: encryptString(raw), created_at: new Date().toISOString(), created_by: admin.id };
   await save([...(await listDisplayLinks()), link]);
   await logActivity({ type: "ADMIN", id: admin.id }, "display.created", "display_link", link.id, { label: link.label, show_names: link.show_names });
@@ -49,16 +59,22 @@ export async function revokeDisplayLink(admin: AdminCtx, id: string) {
   await logActivity({ type: "ADMIN", id: admin.id }, "display.revoked", "display_link", id, { label: link.label });
 }
 
+/** Path yang ditampilkan di daftar admin: kode pendek terlihat; link dengan nama disamarkan. */
+export function displayPath(link: DisplayLink): string | null {
+  return link.show_names ? null : `/layar/${decryptString(link.enc)}`;
+}
+
 export async function displayLinkUrl(id: string, locale: "id" | "en" = "id") {
   const link = (await listDisplayLinks()).find((x) => x.id === id);
   if (!link) throw new HttpError(404, "Link layar tidak ditemukan");
   return displayUrl(decryptString(link.enc), locale);
 }
 
-/** Validasi token layar. touch = catat terakhir aktif (paling sering tiap 5 menit per link). */
+/** Validasi token layar (kode pendek tidak peka huruf besar/kecil). touch = catat terakhir aktif (paling sering tiap 5 menit per link). */
 export async function resolveDisplay(raw: string, touch = false): Promise<DisplayLink | null> {
-  const h = hashToken(decodeURIComponent(raw));
-  const link = (await listDisplayLinks()).find((x) => safeEqual(x.hash, h)) ?? null;
+  const r = decodeURIComponent(raw).trim();
+  const hashes = [hashToken(r), hashToken(r.toLowerCase())];
+  const link = (await listDisplayLinks()).find((x) => hashes.some((h) => safeEqual(x.hash, h))) ?? null;
   if (link && touch) {
     const seen = (await displaySeen())[link.id];
     if (!seen || Date.now() - new Date(seen).getTime() > 5 * 60_000) {

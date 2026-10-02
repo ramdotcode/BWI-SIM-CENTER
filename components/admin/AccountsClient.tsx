@@ -73,7 +73,7 @@ export function LinkActions({ regId }: { regId: number }) {
   );
 }
 
-export type DisplayRow = { id: string; label: string; show_names: boolean; created: string; seen: string | null };
+export type DisplayRow = { id: string; label: string; show_names: boolean; path: string | null; created: string; seen: string | null };
 
 /** Tab "Layar": buat, salin, buka, dan cabut link Mode Layar (Super Admin). */
 export function DisplayLinks({ rows }: { rows: DisplayRow[] }) {
@@ -117,7 +117,7 @@ export function DisplayLinks({ rows }: { rows: DisplayRow[] }) {
             {rows.length === 0 && <tr><td colSpan={5} className="muted small">{t("empty")}</td></tr>}
             {rows.map((r) => (
               <tr key={r.id}>
-                <td><b>{r.label}</b></td>
+                <td><b>{r.label}</b><div className="small mono muted">{r.path ?? t("secretLink")}</div></td>
                 <td><span className={`pill ${r.show_names ? "warn" : "neutral"}`}>{r.show_names ? t("modeNames") : t("modeAnon")}</span></td>
                 <td className="small">{r.created}</td>
                 <td className="small">{r.seen ?? <span className="faint">{t("never")}</span>}</td>

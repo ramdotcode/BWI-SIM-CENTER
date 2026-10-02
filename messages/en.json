@@ -949,6 +949,7 @@
     "created": "Display link created & copied",
     "empty": "No display links yet.",
     "saOnly": "Only the Super Admin can manage display links.",
-    "howTo": "Setup: open the link in Chrome on a TV box / mini PC and press Full screen. The screen stays on and the schedule updates automatically."
+    "howTo": "Setup: open the link in Chrome on a TV box / mini PC and press Full screen. The screen stays on and the schedule updates automatically.",
+    "secretLink": "secret link (shows names)"
   }
 }

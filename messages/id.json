@@ -949,6 +949,7 @@
     "created": "Link layar dibuat & disalin",
     "empty": "Belum ada link layar.",
     "saOnly": "Hanya Super Admin yang bisa mengelola link layar.",
-    "howTo": "Cara pasang: buka link di browser Chrome pada TV box / mini PC, tekan tombol Layar penuh. Layar tetap menyala dan jadwal diperbarui otomatis."
+    "howTo": "Cara pasang: buka link di browser Chrome pada TV box / mini PC, tekan tombol Layar penuh. Layar tetap menyala dan jadwal diperbarui otomatis.",
+    "secretLink": "link rahasia (berisi nama)"
   }
 }
