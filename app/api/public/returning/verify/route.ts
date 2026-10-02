@@ -30,7 +30,7 @@ export const POST = handler(async (req: Request) => {
       licence_type: p.licence_type, licence_no: p.licence_no, licence_authority: p.licence_authority, licence_issued_at: ymd(p.licence_issued_at),
       instrument_rating: p.instrument_rating ?? "", type_ratings: p.type_ratings, total_hours: String(p.total_hours), hours_on_type: p.hours_on_type ? String(p.hours_on_type) : "",
       icao_english: p.icao_english ?? "", organization: p.organization ?? "", position: p.position ?? "", medical_class: p.medical_class, medical_no: p.medical_no,
-      medical_valid_until: ymd(p.medical_valid_until), medical_center: p.medical_center ?? "",
+      medical_valid_until: ymd(p.medical_valid_until),
     },
   });
 });

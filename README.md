@@ -108,6 +108,14 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 ### Alternatif tanpa Vercel
 Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga didukung; di sana driver `local` (disk terenkripsi) boleh dipakai asal disk permanen & di-backup.
 
+## Mode Layar (papan jadwal TV, CR-01)
+
+Halaman `/layar/{token}` menampilkan jadwal simulator real-time untuk TV/monitor **tanpa login** (hari ini besar per simulator × sesi + 4 hari kerja berikutnya, jam WIB, tombol layar penuh, layar dijaga tetap menyala, ukuran huruf menyesuaikan layar).
+- Link dibuat/disalin/dicabut oleh **Super Admin** di Admin → Manajemen akun → tab **Layar**. Tiap link punya opsi **tampilkan nama** (peserta, paket, instruktur, alasan maintenance); defaultnya **tanpa nama** — server tidak mengirim data pribadi sama sekali untuk link tanpa nama.
+- Disimpan di tabel `settings` (`display_links`, hash token + salinan terenkripsi; `display_seen` = terakhir aktif) — tanpa tabel/migrasi baru. Link yang dicabut langsung menampilkan "Link layar tidak aktif".
+- Pembaruan: SSE publik memicu ambil ulang data + ambil ulang tiap menit (status berlangsung/lewat, ganti hari).
+- Perangkat yang disarankan: Chrome di TV box Android / mini PC (browser bawaan Smart TV sering terbatas).
+
 ## Nilai default yang MENUNGGU KONFIRMASI CLIENT (Q1–Q12)
 
 Semua tersimpan di tabel `settings` dan bisa diubah di Admin → Pengaturan.
@@ -134,7 +142,8 @@ Dummy lain: rekening BCA 123-456-7890 a.n. PT BWI Aviation Indonesia, WA admin 0
 1. **Auth admin** memakai JWT `jose` + bcrypt buatan sendiri, bukan Auth.js — cukup untuk 2 peran credentials, lebih sedikit dependensi. Akun nonaktif langsung kehilangan akses (dicek ke DB tiap request).
 2. **Unggah dokumen**: "URL bertanda tangan" mengarah ke endpoint server sendiri (`/api/public/uploads/put`, berlaku 10 menit), bukan langsung ke bucket, agar server bisa **mime sniffing, batas 5 MB, dan strip EXIF** sebelum menyimpan.
 3. **Template email** berupa fungsi TypeScript (HTML inline-style), bukan React Email/MJML.
-4. **Sheet Excel "Peserta" berisi 48 kolom**, bukan 42 seperti mockup: sesuai prinsip "field formulir = kolom Excel", ikut disertakan `medical_center` dan 5 field preferensi jadwal. Kolom bisa disembunyikan di halaman Database.
+4. **Sheet Excel "Peserta" berisi 47 kolom**, bukan 42 seperti mockup: sesuai prinsip "field formulir = kolom Excel", ikut disertakan 5 field preferensi jadwal. Kolom bisa disembunyikan di halaman Database.
+8. **Isian "Balai kesehatan penerbangan" (`medical_center`) dihapus dari form & Excel** (1 Okt 2026, masukan penguji: membingungkan, opsional). Kolom database `participants.medical_center` sengaja dibiarkan (nullable, tidak dipakai) agar tidak perlu migrasi.
 5. **Job kedaluwarsa** mengikuti spec (UNPAID/AWAITING lewat tempo → OVERDUE), tetapi invoice yang **sudah punya konfirmasi WA/bukti** tidak otomatis dijadikan EXPIRED — diputuskan admin.
 6. **Notifikasi** dikirim setelah respons (`after()` Next.js) agar aksi admin tidak menunggu render PDF/SMTP; setiap kiriman tetap dicatat di `notifications`.
 7. Peserta lama (E-08): prefill data diri & lisensi setelah OTP email; **dokumen selalu wajib diunggah baru** per pendaftaran.

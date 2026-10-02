@@ -6,6 +6,7 @@ import { AUTHORITIES, DOC_KINDS, NATIONALITIES, POSITIONS, PURPOSES, RELATIONS, 
 import { fmtDate, rupiah } from "@/lib/format";
 import { ACCEPT, api, fmtSize, uploadFile, type Uploaded } from "../upload";
 import { useToast } from "../Toast";
+import { DateSelect } from "./DateSelect";
 
 type Pkg = { code: string; name: string; short: string; hours: number; price: number };
 type Values = Record<string, string | string[]>;
@@ -17,7 +18,7 @@ const DOC_ICON: Record<string, string> = { KTP: "🪪", MEDICAL: "🩺", LICENCE
 const EMPTY: Values = {
   full_name: "", nik: "", passport_no: "", birth_place: "", birth_date: "", gender: "", nationality: "ID", whatsapp: "", email: "", address: "", city: "", province: "", postal_code: "",
   emergency_name: "", emergency_relation: "", emergency_phone: "", licence_type: "", licence_no: "", licence_authority: "DGCA", licence_issued_at: "", instrument_rating: "", type_ratings: [],
-  total_hours: "", hours_on_type: "", icao_english: "", organization: "", position: "", medical_class: "", medical_no: "", medical_valid_until: "", medical_center: "",
+  total_hours: "", hours_on_type: "", icao_english: "", organization: "", position: "", medical_class: "", medical_no: "", medical_valid_until: "",
   simulator: "A320", package: "", pref_date_from: "", pref_date_to: "", pref_time: "FLEXIBLE", purpose: "", notes: "",
 };
 
@@ -146,6 +147,11 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
     </select>
   );
 
+  // Pilihan tanggal per bagian (tahun bisa dipilih langsung) untuk tanggal yang jauh dari hari ini.
+  const thisYear = new Date().getFullYear();
+  const range = (from: number, to: number) => Array.from({ length: Math.abs(to - from) + 1 }, (_, i) => (from <= to ? from + i : from - i));
+  const dsel = (k: string, years: number[]) => <DateSelect id={`f_${k}`} value={(v[k] as string) ?? ""} onChange={(x) => set(k, x)} years={years} l={l as "id" | "en"} invalid={!!errors[k]} />;
+
   const stepNames = [t("step1"), t("step2"), t("step3"), t("step4"), t("step5")];
 
   const review = useMemo(() => {
@@ -190,7 +196,7 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
             <F k="nik" err={errors.nik} label={t("nik")} req hint={t("nikHint")}><input {...inp("nik", { mono: true })} inputMode="numeric" maxLength={16} /></F>
             <F k="passport_no" err={errors.passport_no} label={<>{t("passport_no")} <span className="hint">{tc("optional")}</span></>}><input {...inp("passport_no", { mono: true })} /></F>
             <F k="birth_place" err={errors.birth_place} label={t("birth_place")} req><input {...inp("birth_place")} /></F>
-            <F k="birth_date" err={errors.birth_date} label={t("birth_date")} req><input {...inp("birth_date")} type="date" /></F>
+            <F k="birth_date" err={errors.birth_date} label={t("birth_date")} req>{dsel("birth_date", range(thisYear - 16, thisYear - 80))}</F>
             <F k="gender" err={errors.gender} label={t("gender")} req>{sel("gender", ["M", "F"], (o) => te(`gender.${o}` as "gender.M"))}</F>
             <F k="nationality" err={errors.nationality} label={t("nationality")} req>{sel("nationality", NATIONALITIES, (o) => te(`nationality.${o}` as "nationality.ID"), false)}</F>
             <div className="sect">{t("secContact")}</div>
@@ -213,7 +219,7 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
             <F k="licence_type" err={errors.licence_type} label={t("licence_type")} req>{sel("licence_type", ["CPL", "ATPL", "PPL", "MPL", "SPL"], (o) => te(`licenceType.${o}` as "licenceType.CPL"))}</F>
             <F k="licence_no" err={errors.licence_no} label={t("licence_no")} req><input {...inp("licence_no", { mono: true })} /></F>
             <F k="licence_authority" err={errors.licence_authority} label={t("licence_authority")} req>{sel("licence_authority", AUTHORITIES, (o) => te(`authority.${o}` as "authority.DGCA"), false)}</F>
-            <F k="licence_issued_at" err={errors.licence_issued_at} label={t("licence_issued_at")} req><input {...inp("licence_issued_at")} type="date" /></F>
+            <F k="licence_issued_at" err={errors.licence_issued_at} label={t("licence_issued_at")} req>{dsel("licence_issued_at", range(thisYear, thisYear - 50))}</F>
             <F k="instrument_rating" err={errors.instrument_rating} label={t("instrument_rating")}>{sel("instrument_rating", ["VALID", "EXPIRED", "NONE"], (o) => te(`instrumentRating.${o}` as "instrumentRating.VALID"))}</F>
             <F k="type_ratings" err={errors.type_ratings} label={t("type_ratings")}>
               <div className="chips">
@@ -236,8 +242,7 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
             <div className="sect">{t("secMedical")}</div>
             <F k="medical_class" err={errors.medical_class} label={t("medical_class")} req>{sel("medical_class", ["C1", "C2"], (o) => te(`medicalClass.${o}` as "medicalClass.C1"))}</F>
             <F k="medical_no" err={errors.medical_no} label={t("medical_no")} req><input {...inp("medical_no", { mono: true })} /></F>
-            <F k="medical_valid_until" err={errors.medical_valid_until} label={t("medical_valid_until")} req><input {...inp("medical_valid_until")} type="date" /></F>
-            <F k="medical_center" err={errors.medical_center} label={t("medical_center")}><input {...inp("medical_center")} /></F>
+            <F k="medical_valid_until" err={errors.medical_valid_until} label={t("medical_valid_until")} req>{dsel("medical_valid_until", range(thisYear - 1, thisYear + 6))}</F>
           </div>
         )}
 

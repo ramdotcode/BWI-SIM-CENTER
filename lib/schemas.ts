@@ -71,7 +71,6 @@ export const step2 = z.object({
   medical_class: z.enum(["C1", "C2"]),
   medical_no: req().max(60),
   medical_valid_until: date,
-  medical_center: opt,
 });
 
 export const step3 = z.object({

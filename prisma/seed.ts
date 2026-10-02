@@ -136,7 +136,7 @@ async function demo() {
         emergency_name: "Kontak Darurat [DUMMY]", emergency_relation: "PARENT", emergency_phone: "+6281311223344",
         licence_type: p.lic, licence_no: p.licNo, licence_authority: "DGCA", licence_issued_at: dateOnly("2022-08-15"), instrument_rating: "VALID",
         type_ratings: p.tr ?? [], total_hours: p.hours, hours_on_type: p.tr?.length ? "1900" : "0", icao_english: "L4", organization: p.org, position: p.pos,
-        medical_class: "C1", medical_no: `MED-1-2026-${p.nik.slice(-5)}`, medical_valid_until: dateOnly(p.med), medical_center: "Balai Kesehatan Penerbangan Jakarta", locale: p.loc ?? "id",
+        medical_class: "C1", medical_no: `MED-1-2026-${p.nik.slice(-5)}`, medical_valid_until: dateOnly(p.med), locale: p.loc ?? "id",
       },
     });
   }

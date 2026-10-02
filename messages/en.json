@@ -305,7 +305,9 @@
     "medical_class": "Class",
     "medical_no": "Certificate number",
     "medical_valid_until": "Valid until",
-    "medical_center": "Aviation medical centre",
+    "dateDay": "Day",
+    "dateMonth": "Month",
+    "dateYear": "Year",
     "select": "— Select —",
     "docsTitle": "Upload documents",
     "docsHint": "— JPG/PNG/PDF, max 5 MB per file",
@@ -900,5 +902,52 @@
   },
   "email": {
     "footer": "This email was sent automatically by the BWI Sim Center system. Admin WhatsApp: {wa}. If you did not register, please ignore this email."
+  },
+  "display": {
+    "title": "Simulator Schedule",
+    "live": "LIVE",
+    "fullscreen": "Full screen",
+    "today": "Today",
+    "upcoming": "Next working days",
+    "closedToday": "The simulators are closed today",
+    "foot": "{h}-hour sessions · {days} {start}–{end} WIB",
+    "updated": "updated {s}s ago",
+    "revokedTitle": "Display link inactive",
+    "revokedText": "This link has been revoked. Ask the BWI Sim Center Super Admin for a new link.",
+    "st": {
+      "free": "Available",
+      "past": "Past",
+      "busy": "Booked",
+      "live": "In session",
+      "done": "Completed",
+      "noshow": "No-show",
+      "maint": "Maintenance"
+    }
+  },
+  "accountsDisplay": {
+    "tab": "Displays",
+    "intro": "Display Mode links show the real-time simulator schedule on a TV/monitor without logging in. Anyone holding the link can view it, so revoke links for screens that move or are no longer used.",
+    "add": "Create display link",
+    "mTitle": "New display link",
+    "label": "Display name / location",
+    "labelPh": "e.g. Lobby, Ops room, Simulator room",
+    "showNames": "Show participant & instructor names",
+    "showNamesWarn": "Internal rooms only. Screens in public areas should not show names (participant personal data, PDP law).",
+    "colLabel": "Display",
+    "colMode": "Content",
+    "colCreated": "Created",
+    "colSeen": "Last active",
+    "modeNames": "With names",
+    "modeAnon": "No names",
+    "never": "Not opened yet",
+    "copy": "Copy link",
+    "open": "Open",
+    "revoke": "Revoke",
+    "confirmRevoke": "Revoke display link \"{label}\"? Screens using this link will stop showing the schedule.",
+    "copied": "Link copied",
+    "created": "Display link created & copied",
+    "empty": "No display links yet.",
+    "saOnly": "Only the Super Admin can manage display links.",
+    "howTo": "Setup: open the link in Chrome on a TV box / mini PC and press Full screen. The screen stays on and the schedule updates automatically."
   }
 }

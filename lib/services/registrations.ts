@@ -60,7 +60,6 @@ export async function submitRegistration(input: RegistrationInput) {
     medical_class: input.medical_class,
     medical_no: input.medical_no,
     medical_valid_until: dateOnly(input.medical_valid_until),
-    medical_center: input.medical_center ?? null,
     locale: input.locale,
   } satisfies Omit<Prisma.ParticipantCreateInput, "nik">;
 

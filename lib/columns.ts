@@ -66,7 +66,6 @@ export const COLUMNS: Col[] = [
   { key: "medical_class", id: "Medical", en: "Medical", type: "text", get: (r) => E(`medicalClass.${r.participant.medical_class}`) },
   { key: "medical_no", id: "No. medical", en: "Medical no.", type: "mono", get: (r) => r.participant.medical_no },
   { key: "medical_valid_until", id: "Medical s/d", en: "Medical until", type: "date", get: (r) => r.participant.medical_valid_until },
-  { key: "medical_center", id: "Balai kesehatan", en: "Medical centre", type: "text", get: (r) => r.participant.medical_center },
   // Langkah 4 — Paket & jadwal
   { key: "simulator", id: "Simulator", en: "Simulator", type: "text", get: (r) => r.simulator.code },
   { key: "package", id: "Paket", en: "Package", type: "text", get: (r) => r.package.short_id },
