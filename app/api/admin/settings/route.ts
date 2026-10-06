@@ -15,6 +15,7 @@ export const POST = handler(async (req: Request) => {
     if (m.type === "number") {
       const n = Number(v);
       if (!Number.isFinite(n) || n < 0) throw new HttpError(422, `${k}: angka tidak valid`);
+      if (k === "upload_max_mb" && (n < 1 || n > 20)) throw new HttpError(422, "Batas ukuran file harus 1–20 MB");
       patch[k] = n;
     } else if (m.type === "boolean") patch[k] = !!v;
     else if (m.type === "time") {

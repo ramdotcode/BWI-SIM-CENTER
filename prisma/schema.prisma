@@ -358,6 +358,7 @@ model Slot {
   registration_id    Int?
   instructor_id      Int?
   maintenance_reason String?
+  block_kind         String?    // jenis blok saat status MAINTENANCE: null/"MAINTENANCE" atau "OTHER" (teks di maintenance_reason) — CR-05
   result_note        String?
   report_storage_key String?
   reminder_h1_at     DateTime?

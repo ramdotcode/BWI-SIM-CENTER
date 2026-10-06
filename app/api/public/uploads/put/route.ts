@@ -3,7 +3,7 @@ import { HttpError } from "@/lib/auth";
 import { verifyPayload } from "@/lib/crypto";
 import { db } from "@/lib/db";
 import { storage } from "@/lib/storage";
-import { MAX_UPLOAD_BYTES, sanitizeUpload } from "@/lib/uploads";
+import { sanitizeUpload, tooLarge, uploadLimit } from "@/lib/uploads";
 
 export const runtime = "nodejs";
 
@@ -13,7 +13,8 @@ export const PUT = handler(async (req: Request) => {
   if (!p) throw new HttpError(403, "URL unggah tidak valid atau kedaluwarsa");
   if (await db.pendingUpload.findUnique({ where: { id: p.id } })) throw new HttpError(409, "URL unggah sudah dipakai");
   const len = Number(req.headers.get("content-length") ?? 0);
-  if (len > MAX_UPLOAD_BYTES) throw new HttpError(413, "Ukuran file melebihi 5 MB");
+  const lim = await uploadLimit();
+  if (len > lim.bytes) throw tooLarge(lim.mb);
   const buf = Buffer.from(await req.arrayBuffer());
   const clean = await sanitizeUpload(buf, { allowPdf: true });
   const key = `pending/${p.id}.${clean.ext}`;

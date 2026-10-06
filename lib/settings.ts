@@ -29,7 +29,8 @@ export const SETTING_DEFAULTS = {
   token_inactive_after_days: 90,
   reupload_token_days: 7,
   reupload_manual_threshold: 3,
-  document_retention_months: 24,
+  document_retention_days: 730, // hapus otomatis dokumen pendaftaran selesai/batal/kedaluwarsa setelah N hari; 0 = tidak pernah (CR-05)
+  upload_max_mb: 5, // batas ukuran 1 file unggahan (1–20 MB, CR-05)
   bank_name: "BCA",
   bank_account: "4972372777",
   bank_holder: "PT BWI Trivindo Mandiri",
@@ -78,7 +79,8 @@ export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boo
   token_inactive_after_days: { type: "number", group: "access" },
   reupload_token_days: { type: "number", group: "access" },
   reupload_manual_threshold: { type: "number", group: "access" },
-  document_retention_months: { type: "number", group: "access" },
+  document_retention_days: { type: "number", group: "access" },
+  upload_max_mb: { type: "number", group: "access" },
   domain: { type: "string", group: "general", q: "Q9" },
   default_locale: { type: "enum", group: "general", q: "Q10", options: ["id", "en"] },
 };

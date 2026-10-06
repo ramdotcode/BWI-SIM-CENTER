@@ -2,11 +2,10 @@
 // Unggah: minta URL bertanda tangan → PUT file (ke server, atau langsung ke R2 lalu /complete).
 // Server selalu melakukan mime sniffing & strip EXIF sebelum file dipakai.
 export type Uploaded = { id: string; name: string; size: number; mime: string };
-export const MAX_BYTES = 5 * 1024 * 1024;
 export const ACCEPT = "image/jpeg,image/png,application/pdf";
 
 export async function uploadFile(file: File, kind: string): Promise<Uploaded> {
-  if (file.size > MAX_BYTES) throw new Error("> 5 MB");
+  // Batas ukuran (setting upload_max_mb) dicek server di /sign sebelum file dikirim.
   const mime = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
   const s = await fetch("/api/public/uploads/sign", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ kind, name: file.name, size: file.size, mime }) });
   const sj = await s.json();

@@ -186,7 +186,7 @@ export async function assignSlots(admin: AdminCtx, opts: { slotId: number; regis
       // Optimistic concurrency: hanya berhasil jika slot masih AVAILABLE.
       const r = await tx.slot.updateMany({
         where: { id: sl.id, status: "AVAILABLE" },
-        data: { status: "SCHEDULED", registration_id: reg.id, instructor_id: opts.instructorId, updated_by: admin.id, maintenance_reason: null },
+        data: { status: "SCHEDULED", registration_id: reg.id, instructor_id: opts.instructorId, updated_by: admin.id, maintenance_reason: null, block_kind: null },
       });
       if (r.count !== 1) {
         if (sl.id === first.id) throw new HttpError(409, "Slot baru saja diisi admin lain");
@@ -256,8 +256,12 @@ export async function moveSlot(admin: AdminCtx, slotId: number, targetId: number
   if (opts.notify && schedSent) await notify("schedule_changed", regId, { extra: { note: `${slotLabel(a)} → ${slotLabel(b)}` } });
 }
 
-/** Rentang slot untuk maintenance: tampilkan peserta terdampak dulu (confirm=false), lalu terapkan. */
-export async function blockMaintenance(admin: AdminCtx, opts: { simCode: string; date: string; from: string; to: string; reason: string; confirm: boolean }) {
+/**
+ * Blok rentang slot (maintenance atau "Lainnya" dgn keterangan bebas, CR-05): tampilkan peserta terdampak dulu
+ * (confirm=false), lalu terapkan. Keduanya berstatus MAINTENANCE; jenisnya di block_kind.
+ */
+export async function blockMaintenance(admin: AdminCtx, opts: { simCode: string; date: string; from: string; to: string; reason: string; kind?: "MAINTENANCE" | "OTHER"; confirm: boolean }) {
+  const kind = opts.kind === "OTHER" ? "OTHER" : null;
   const s = await getSettings();
   await ensureSlots(opts.date, opts.date, s);
   const slots = await db.slot.findMany({
@@ -280,7 +284,7 @@ export async function blockMaintenance(admin: AdminCtx, opts: { simCode: string;
     for (const sl of slots) {
       if (sl.status !== "AVAILABLE" && sl.status !== "SCHEDULED") continue;
       if (isPast(sl)) continue;
-      await tx.slot.update({ where: { id: sl.id }, data: { status: "MAINTENANCE", registration_id: null, instructor_id: null, maintenance_reason: opts.reason, updated_by: admin.id } });
+      await tx.slot.update({ where: { id: sl.id }, data: { status: "MAINTENANCE", registration_id: null, instructor_id: null, maintenance_reason: opts.reason, block_kind: kind, updated_by: admin.id } });
       await history(tx, sl.id, sl.status, "MAINTENANCE", sl.registration_id, null, admin.id, opts.reason);
       touched.push({ id: sl.id, prevReg: sl.registration_id });
       if (sl.registration_id) affectedRegs.add(sl.registration_id);
@@ -289,13 +293,13 @@ export async function blockMaintenance(admin: AdminCtx, opts: { simCode: string;
       await tx.registration.update({ where: { id: rid }, data: { affected_by_maintenance: true } });
       await recomputeRegStatus(tx, rid, s);
     }
-    await logActivity({ type: "ADMIN", id: admin.id }, "slot.maintenance", "simulator", opts.simCode, { date: opts.date, from: opts.from, to: opts.to, reason: opts.reason, affected: [...affectedRegs] }, tx);
+    await logActivity({ type: "ADMIN", id: admin.id }, "slot.maintenance", "simulator", opts.simCode, { date: opts.date, from: opts.from, to: opts.to, reason: opts.reason, kind: kind ?? "MAINTENANCE", affected: [...affectedRegs] }, tx);
   });
   const full = await db.slot.findMany({ where: { id: { in: touched.map((t) => t.id) } }, include: slotInclude });
   for (const sl of full) await publish(toEvent(sl, "maintenance", touched.find((t) => t.id === sl.id)?.prevReg));
   for (const rid of affectedRegs) {
     const r = await db.registration.findUnique({ where: { id: rid } });
-    await notify("schedule_changed", rid, { channels: r?.schedule_sent_at ? ["EMAIL", "WA", "DASHBOARD"] : ["WA", "DASHBOARD"], extra: { note: `maintenance ${opts.reason}` } });
+    await notify("schedule_changed", rid, { channels: r?.schedule_sent_at ? ["EMAIL", "WA", "DASHBOARD"] : ["WA", "DASHBOARD"], extra: { note: kind ? opts.reason : `maintenance ${opts.reason}` } });
   }
   return { applied: true, count: touched.length, affected: [...affectedRegs].length };
 }
@@ -303,8 +307,8 @@ export async function blockMaintenance(admin: AdminCtx, opts: { simCode: string;
 export async function clearMaintenance(admin: AdminCtx, slotId: number) {
   const slot = await db.$transaction(async (tx) => {
     const sl = await tx.slot.findUnique({ where: { id: slotId } });
-    if (!sl || sl.status !== "MAINTENANCE") throw new HttpError(409, "Slot tidak sedang maintenance");
-    await tx.slot.update({ where: { id: slotId }, data: { status: "AVAILABLE", maintenance_reason: null, updated_by: admin.id } });
+    if (!sl || sl.status !== "MAINTENANCE") throw new HttpError(409, "Slot tidak sedang diblok");
+    await tx.slot.update({ where: { id: slotId }, data: { status: "AVAILABLE", maintenance_reason: null, block_kind: null, updated_by: admin.id } });
     await history(tx, slotId, "MAINTENANCE", "AVAILABLE", null, null, admin.id);
     await logActivity({ type: "ADMIN", id: admin.id }, "slot.maintenance_cleared", "slot", slotId, {}, tx);
     return sl;

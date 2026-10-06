@@ -108,6 +108,15 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 ### Alternatif tanpa Vercel
 Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga didukung; di sana driver `local` (disk terenkripsi) boleh dipakai asal disk permanen & di-backup.
 
+## Perubahan CR-05 (6 Okt 2026, masukan klien)
+
+| Masukan | Implementasi |
+|---|---|
+| Jadwal TV 5 hari, A320/737 di kiri | Mode Layar: tabel "Hari kerja berikutnya" kini **5 hari kerja** ke kanan (kolom = tanggal), baris = simulator × sesi (A320 lalu B737). Bagian "Hari ini" tetap. |
+| Blok selain maintenance — Lainnya (teks bebas) | Modal **Blok jadwal** di Kelola jadwal: jenis *Maintenance* atau *Lainnya* + keterangan bebas. Status slot tetap `MAINTENANCE`, jenis di kolom baru `slots.block_kind` (`OTHER`/null). Admin & TV menampilkan keterangan "Lainnya"; publik & peserta melihat label netral "Diblok / Tidak tersedia". |
+| Setting hapus otomatis dokumen | `document_retention_days` (default 730, 0 = tidak pernah) menggantikan `document_retention_months`. Job `cleanup` (01:30 WIB) menghapus dokumen + file storage dari pendaftaran selesai/batal/kedaluwarsa yang tidak berubah selama N hari. |
+| Batas ukuran dokumen | `upload_max_mb` (default 5, 1–20) di Pengaturan; dicek di browser, di `/uploads/sign` sebelum file dikirim, dan saat validasi server. Pesan: "Ukuran file X MB melebihi batas Y MB". |
+
 ## Perubahan CR-04 (6 Okt 2026, masukan klien)
 
 | Masukan | Implementasi |

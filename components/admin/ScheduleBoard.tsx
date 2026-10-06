@@ -73,7 +73,9 @@ export function ScheduleBoard(props: { initialWeek: AdminWeek; initialQueue: Que
       case "CANCELLED":
         return { cls: `slot busy past`, lab: te("slotStatus.CANCELLED"), sub: x.short ?? undefined, clickable: !!x.reg_id };
       case "MAINTENANCE":
-        return { cls: `slot maint ${past}`, lab: "Maintenance", sub: x.reason ?? undefined, clickable: !x.past };
+        return x.block_kind === "OTHER"
+          ? { cls: `slot maint ${past}`, lab: x.reason ?? t("kindOther"), sub: t("kindOther"), clickable: !x.past }
+          : { cls: `slot maint ${past}`, lab: "Maintenance", sub: x.reason ?? undefined, clickable: !x.past };
       default:
         return { cls: "slot", lab: x.status };
     }
@@ -401,8 +403,9 @@ function MaintModal({ sim, times, defaultDate, busy, onClose, onDone, setBusy }:
   const [from, setFrom] = useState(times[0]?.start ?? "06:00");
   const [to, setTo] = useState(times[0]?.end ?? "08:00");
   const [reason, setReason] = useState("");
+  const [kind, setKind] = useState<"MAINTENANCE" | "OTHER">("MAINTENANCE");
   const [preview, setPreview] = useState<{ count: number; affected: { slot: string; name: string; reg_no: string }[] } | null>(null);
-  const body = (confirm: boolean) => ({ sim, date, from, to, reason, confirm });
+  const body = (confirm: boolean) => ({ sim, date, from, to, reason, kind, confirm });
   const check = async () => {
     setBusy(true);
     try {
@@ -438,12 +441,22 @@ function MaintModal({ sim, times, defaultDate, busy, onClose, onDone, setBusy }:
         </>
       }
     >
+      <div className="field" style={{ marginBottom: 12 }}>
+        <span className="flabel">{t("blockKind")}</span>
+        <div className="chips" role="radiogroup">
+          {(["MAINTENANCE", "OTHER"] as const).map((k) => (
+            <button type="button" key={k} role="radio" aria-checked={kind === k} className={`chk ${kind === k ? "on" : ""}`} onClick={() => { setKind(k); setPreview(null); }}>
+              {k === "MAINTENANCE" ? "Maintenance" : t("kindOther")}
+            </button>
+          ))}
+        </div>
+      </div>
       <div className="fgrid three">
         <label className="field"><span className="flabel">{t("maintDate")}</span><input className="in" type="date" value={date} onChange={(e) => { setDate(e.target.value); setPreview(null); }} /></label>
         <label className="field"><span className="flabel">{t("maintFrom")}</span><select className="in" value={from} onChange={(e) => { setFrom(e.target.value); setPreview(null); }}>{times.map((x) => <option key={x.start} value={x.start}>{fmtTime(x.start, l)}</option>)}</select></label>
         <label className="field"><span className="flabel">{t("maintTo")}</span><select className="in" value={to} onChange={(e) => { setTo(e.target.value); setPreview(null); }}>{times.map((x) => <option key={x.end} value={x.end}>{fmtTime(x.end, l)}</option>)}</select></label>
       </div>
-      <label className="field"><span className="flabel">{t("maintReason")}</span><input className="in" value={reason} onChange={(e) => { setReason(e.target.value); setPreview(null); }} placeholder="Visual system, preventive maint., …" /></label>
+      <label className="field"><span className="flabel">{kind === "OTHER" ? t("otherReason") : t("maintReason")}</span><input className="in" value={reason} maxLength={200} onChange={(e) => { setReason(e.target.value); setPreview(null); }} placeholder={kind === "OTHER" ? t("otherReasonPh") : "Visual system, preventive maint., …"} /></label>
       {preview && (
         preview.affected.length ? (
           <div className="banner bad">

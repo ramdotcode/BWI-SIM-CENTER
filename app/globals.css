@@ -541,3 +541,16 @@ th.sticky-col{background:var(--teal-tint);z-index:2}
   .upload .pill{margin-left:52px}
   .upload .btn{margin-left:auto}
 }
+
+@layer components {
+/* Mode Layar: blok "Lainnya" + tabel hari berikutnya (simulator di kiri, tanggal ke kanan) — CR-05 */
+.disp .dc.block{background:var(--line-soft);border-color:var(--line);color:var(--muted);background-image:repeating-linear-gradient(135deg,transparent 0 8px,rgba(11,59,72,.06) 8px 16px)}
+.disp .next th.simc,.disp .next td.simc{width:4.2em}
+.disp .next th.tmc,.disp .next td.tmc{width:6.2em}
+.disp .next td.simc{font-family:var(--mono);font-weight:700;color:var(--teal-deep);vertical-align:middle;text-align:center;border-radius:.4em;background:var(--teal-tint)}
+.disp .next td.simc.b737{background:var(--lime-soft)}
+.disp .next td.tmc{font-family:var(--mono);font-weight:600;color:var(--teal-deep);white-space:nowrap}
+.disp .next td.tmc small{display:block;font-weight:400;color:var(--muted);font-size:.8em}
+.disp .next tr.first:not(:first-child) td{padding-top:.5em}
+}
+

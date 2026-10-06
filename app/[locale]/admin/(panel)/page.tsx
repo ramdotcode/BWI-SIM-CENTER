@@ -60,7 +60,7 @@ export default async function AdminHome({ params }: { params: Promise<{ locale: 
               {d.today.length === 0 && <div className="empty">{t("todayEmpty")}</div>}
               {d.today.map((x) => {
                 const box = x.phase === "live" ? { border: "1px solid var(--teal)", background: "var(--teal-tint)" } : x.phase === "maint" ? { border: "1px solid #F0D9A0", background: "var(--warn-soft)" } : { border: "1px solid var(--line)" };
-                const pill = x.phase === "live" ? ["teal", t("inProgress")] : x.phase === "maint" ? ["warn", "Maint."] : x.phase === "done" ? ["ok", x.status === "NO_SHOW" ? "No-show" : l === "id" ? "Selesai" : "Done"] : ["neutral", t("upcoming")];
+                const pill = x.phase === "live" ? ["teal", t("inProgress")] : x.phase === "maint" ? ["warn", x.block_kind === "OTHER" ? (l === "id" ? "Diblok" : "Blocked") : "Maint."] : x.phase === "done" ? ["ok", x.status === "NO_SHOW" ? "No-show" : l === "id" ? "Selesai" : "Done"] : ["neutral", t("upcoming")];
                 return (
                   <div key={x.id} className="row between" style={{ padding: "10px 12px", borderRadius: 8, ...box }}>
                     <div>

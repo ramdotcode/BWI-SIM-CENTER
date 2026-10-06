@@ -34,6 +34,7 @@ export default async function Daftar({ params, searchParams }: { params: Promise
       <RegisterForm
         packages={pkgs.map((p) => ({ code: p.code, name: l === "id" ? p.name_id : p.name_en, short: l === "id" ? p.short_id : p.short_en, hours: p.hours, price: Number(p.price_idr) }))}
         slotHours={s.slot_minutes / 60}
+        uploadMaxMb={Math.min(20, Math.max(1, Number(s.upload_max_mb) || 5))}
         initialPkg={pkgs.some((p) => p.code === sp.paket) ? sp.paket : undefined}
         initialSim={sp.sim === "B737" || sp.sim === "A320" ? sp.sim : undefined}
       />

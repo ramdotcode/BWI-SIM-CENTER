@@ -76,6 +76,7 @@ export async function homeData() {
       who: x.registration?.participant.full_name ?? null,
       instructor: x.instructor?.name ?? null,
       reason: x.maintenance_reason,
+      block_kind: x.block_kind,
     })),
     wa: waOutbox.map((n) => ({ id: n.id, template: n.template, name: n.registration?.participant.full_name ?? "", reg: n.registration?.reg_no ?? "", at: n.created_at, link: String((n.payload as { link?: string })?.link ?? ""), text: String((n.payload as { text?: string })?.text ?? "") })),
     now,

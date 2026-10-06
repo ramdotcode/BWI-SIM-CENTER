@@ -37,7 +37,7 @@ function readDraft(): { v: Values; docs: DocState; step: number } | null {
   }
 }
 
-export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { packages: Pkg[]; slotHours: number; initialPkg?: string; initialSim?: string }) {
+export function RegisterForm({ packages, slotHours, uploadMaxMb, initialPkg, initialSim }: { packages: Pkg[]; slotHours: number; uploadMaxMb: number; initialPkg?: string; initialSim?: string }) {
   const t = useTranslations("form");
   const te = useTranslations("enums");
   const tc = useTranslations("common");
@@ -103,6 +103,10 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
   }
   async function onFile(kind: string, f: File | undefined) {
     if (!f) return;
+    if (f.size > uploadMaxMb * 1024 * 1024) {
+      setDocs((d) => ({ ...d, [kind]: { error: t("tooLarge", { size: (f.size / 1024 / 1024).toFixed(1).replace(".", l === "id" ? "," : "."), mb: uploadMaxMb }), name: f.name } }));
+      return;
+    }
     setDocs((d) => ({ ...d, [kind]: { uploading: true, name: f.name } }));
     try {
       const up = await uploadFile(f, kind);
@@ -276,7 +280,7 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
         {step === 3 && (
           <div className="stack" style={{ gap: 14 }}>
             <div className="sect" style={{ border: 0, margin: 0 }}>
-              {t("docsTitle")} <span className="small muted" style={{ fontFamily: "var(--font)", fontWeight: 400 }}>{t("docsHint")}</span>
+              {t("docsTitle")} <span className="small muted" style={{ fontFamily: "var(--font)", fontWeight: 400 }}>{t("docsHint", { mb: uploadMaxMb })}</span>
             </div>
             {docKinds.map((k) => {
               const d = docs[k];

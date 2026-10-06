@@ -26,6 +26,7 @@ export async function adminWeek(sim: string, monday: string) {
       instructor_id: x.instructor_id,
       instructor: x.instructor?.name ?? null,
       reason: x.maintenance_reason,
+      block_kind: x.block_kind,
       result_note: x.result_note,
       report: !!x.report_storage_key,
       medical_until: x.registration ? ymd(x.registration.participant.medical_valid_until) : null,

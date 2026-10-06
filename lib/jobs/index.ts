@@ -90,9 +90,10 @@ export async function cleanup() {
   for (const o of orphans) await storage.remove(o.storage_key).catch(() => {});
   await db.pendingUpload.deleteMany({ where: { OR: [{ id: { in: orphans.map((o) => o.id) } }, { claimed: true, created_at: { lt: new Date(now - 86400_000) } }] } });
   await db.otpCode.deleteMany({ where: { created_at: { lt: new Date(now - 86400_000) } } });
-  // Retensi dokumen identitas (setting document_retention_months; default 24 — konfirmasi client).
-  const retention = new Date(now - s.document_retention_months * 30 * 86400_000);
-  const oldDocs = await db.document.findMany({ where: { registration: { status: { in: ["COMPLETED", "CANCELLED"] }, updated_at: { lt: retention } } }, take: 500 });
+  // Hapus otomatis dokumen (setting document_retention_days; 0 = tidak pernah): pendaftaran selesai/batal/kedaluwarsa
+  // yang tidak berubah lagi selama N hari. File di storage ikut dihapus.
+  const retention = new Date(now - s.document_retention_days * 86400_000);
+  const oldDocs = s.document_retention_days > 0 ? await db.document.findMany({ where: { registration: { status: { in: ["COMPLETED", "CANCELLED", "EXPIRED"] }, updated_at: { lt: retention } } }, take: 500 }) : [];
   for (const d of oldDocs) await storage.remove(d.storage_key).catch(() => {});
   if (oldDocs.length) await db.document.deleteMany({ where: { id: { in: oldDocs.map((d) => d.id) } } });
   return { reupload_tokens: tok.count, orphan_uploads: orphans.length, documents_purged: oldDocs.length };

@@ -153,20 +153,25 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
         {upcoming.length > 0 && (
           <section className="next">
             <div className="sect-h">{t("upcoming")}</div>
+            {/* CR-05: simulator × sesi di kiri (baris), tanggal ke kanan (kolom). */}
             <table>
               <thead>
                 <tr>
-                  <th />
-                  {b.sims.map((sim) => b.times.map((tm) => <th key={`${sim.code}${tm.start}`}>{sim.code} · {fmtTime(tm.start, l)}</th>))}
+                  <th className="simc" />
+                  <th className="tmc" />
+                  {upcoming.map((d) => <th key={d.date}>{dayLabel(d.date)}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {upcoming.map((d) => (
-                  <tr key={d.date}>
-                    <td className="dl">{dayLabel(d.date)}</td>
-                    {b.sims.map((sim) => b.times.map((tm) => <td key={`${sim.code}${tm.start}`}><Cell c={d.cells[sim.code]?.[tm.start] ?? { st: "free" }} /></td>))}
-                  </tr>
-                ))}
+                {b.sims.map((sim) =>
+                  b.times.map((tm, i) => (
+                    <tr key={`${sim.code}${tm.start}`} className={i === 0 ? "first" : ""}>
+                      {i === 0 && <td className={`simc ${sim.code.toLowerCase()}`} rowSpan={b.times.length}>{sim.code}</td>}
+                      <td className="tmc">{fmtTime(tm.start, l)}<small>–{fmtTime(tm.end, l)}</small></td>
+                      {upcoming.map((d) => <td key={d.date}><Cell c={d.cells[sim.code]?.[tm.start] ?? { st: "free" }} /></td>)}
+                    </tr>
+                  )),
+                )}
               </tbody>
             </table>
           </section>
