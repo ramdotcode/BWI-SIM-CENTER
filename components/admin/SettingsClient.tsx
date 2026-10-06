@@ -88,14 +88,17 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
 
 type Pkg = { id?: number; code: string; name_id: string; name_en: string; short_id: string; short_en: string; hours: number; price_idr: number; description_id: string; description_en: string; bullets_id: string[]; bullets_en: string[]; highlight: boolean; active: boolean; sort: number };
 
-export function PackagesEditor({ packages }: { packages: Pkg[] }) {
+/** Paket diisi dalam JUMLAH SESI (slot); jam = sesi × durasi sesi (setting session_times), disimpan sebagai `hours`. */
+export function PackagesEditor({ packages, slotMinutes }: { packages: Pkg[]; slotMinutes: number }) {
+  const slotH = slotMinutes / 60;
+  const sessionsOf = (hours: number) => Math.max(1, Math.ceil((hours * 60) / slotMinutes));
   const t = useTranslations("admin.settings");
   const tc = useTranslations("common");
   const toast = useToast();
   const router = useRouter();
   const [edit, setEdit] = useState<Pkg | null>(null);
   const [busy, setBusy] = useState(false);
-  const blank: Pkg = { code: "", name_id: "", name_en: "", short_id: "", short_en: "", hours: 4, price_idr: 0, description_id: "", description_en: "", bullets_id: [], bullets_en: [], highlight: false, active: true, sort: packages.length + 1 };
+  const blank: Pkg = { code: "", name_id: "", name_en: "", short_id: "", short_en: "", hours: Math.round(slotH), price_idr: 0, description_id: "", description_en: "", bullets_id: [], bullets_en: [], highlight: false, active: true, sort: packages.length + 1 };
   const save = async () => {
     if (!edit) return;
     setBusy(true);
@@ -129,13 +132,13 @@ export function PackagesEditor({ packages }: { packages: Pkg[] }) {
       </div>
       <div className="tbl">
         <table>
-          <thead><tr><th>{t("code")}</th><th>{t("nameId")}</th><th style={{ textAlign: "right" }}>{t("hours")}</th><th style={{ textAlign: "right" }}>{t("price")}</th><th>{t("active")}</th><th /></tr></thead>
+          <thead><tr><th>{t("code")}</th><th>{t("nameId")}</th><th style={{ textAlign: "right" }}>{t("sessions")}</th><th style={{ textAlign: "right" }}>{t("price")}</th><th>{t("active")}</th><th /></tr></thead>
           <tbody>
             {packages.map((p) => (
               <tr key={p.id}>
                 <td className="mono">{p.code}</td>
                 <td><b>{p.name_id}</b>{p.highlight && <span className="pill teal xs" style={{ marginLeft: 6 }}>★</span>}<div className="small muted">{p.name_en}</div></td>
-                <td className="mono" style={{ textAlign: "right" }}>{p.hours}</td>
+                <td className="mono" style={{ textAlign: "right" }}>{sessionsOf(p.hours)} <span className="muted small">({t("hoursShort", { h: p.hours })})</span></td>
                 <td className="mono" style={{ textAlign: "right" }}>{rupiah(p.price_idr)}</td>
                 <td><span className={`pill ${p.active ? "ok" : "neutral"}`}>{p.active ? tc("yes") : tc("no")}</span></td>
                 <td><button className="btn xs ghost" onClick={() => setEdit(p)}>{tc("edit")}</button></td>
@@ -153,7 +156,11 @@ export function PackagesEditor({ packages }: { packages: Pkg[] }) {
             {F("name_en", t("nameEn"))}
             {F("short_id", t("shortId"))}
             {F("short_en", t("shortEn"))}
-            {F("hours", t("hours"), "number")}
+            <label className="field">
+              <span className="flabel">{t("sessions")}</span>
+              <input className="in mono" inputMode="numeric" value={String(sessionsOf(edit.hours))} onChange={(e) => { const n = Math.max(1, Math.min(50, Number(e.target.value.replace(/\D/g, "")) || 1)); setEdit({ ...edit, hours: Math.round(n * slotH) }); }} />
+              <span className="hint">{t("sessionsHint", { slot: slotH, h: edit.hours })}</span>
+            </label>
             {F("price_idr", t("price"), "number")}
             {F("description_id", t("descId"), "area")}
             {F("description_en", t("descEn"), "area")}

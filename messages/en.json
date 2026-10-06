@@ -931,7 +931,10 @@
       "qNote": "Values marked Q# are dummy assumptions awaiting the client's answer (see README).",
       "otpNote": "Not implemented yet (phase 7, if Q8 = yes).",
       "sessionsNote": "Format HH:MM-HH:MM, comma-separated. All sessions must be the same length; 1 session = 1 slot. Future empty slots that no longer match are removed; booked slots are kept.",
-      "workDaysNote": "Block public holidays manually via Block maintenance in the schedule."
+      "workDaysNote": "Block public holidays manually via Block maintenance in the schedule.",
+      "sessions": "Sessions",
+      "hoursShort": "{h} h",
+      "sessionsHint": "1 session = {slot} h → {h} simulator hours in total. Used to count the slots to schedule."
     },
     "people": {
       "title": "Participant Personal Data",
@@ -978,7 +981,7 @@
     }
   },
   "accountsDisplay": {
-    "tab": "Displays",
+    "tab": "TV screens",
     "intro": "Display Mode links show the real-time simulator schedule on a TV/monitor without logging in. Anyone holding the link can view it, so revoke links for screens that move or are no longer used.",
     "add": "Create display link",
     "mTitle": "New display link",

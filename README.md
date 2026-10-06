@@ -146,7 +146,7 @@ Juga diperbaiki: pilihan opsional (IR, ICAO, posisi, tujuan sesi) yang dibiarkan
 ## Mode Layar (papan jadwal TV, CR-01)
 
 Halaman `/layar/{token}` menampilkan jadwal simulator real-time untuk TV/monitor **tanpa login** (hari ini besar per simulator × sesi + 4 hari kerja berikutnya, jam WIB, tombol layar penuh, layar dijaga tetap menyala, ukuran huruf menyesuaikan layar).
-- Link dibuat/disalin/dicabut oleh **Super Admin** di Admin → Manajemen akun → tab **Layar**. Tiap link punya opsi **tampilkan nama** (peserta, paket, instruktur, alasan maintenance); defaultnya **tanpa nama** — server tidak mengirim data pribadi sama sekali untuk link tanpa nama.
+- Link dibuat/disalin/dicabut oleh **Super Admin** di Admin → **Pengaturan → tab Layar TV** (dipindah dari Manajemen akun 6 Okt 2026; link lama `/admin/akun?tab=layar` dialihkan otomatis). Tiap link punya opsi **tampilkan nama** (peserta, paket, instruktur, alasan maintenance); defaultnya **tanpa nama** — server tidak mengirim data pribadi sama sekali untuk link tanpa nama.
 - Disimpan di tabel `settings` (`display_links`, hash token + salinan terenkripsi; `display_seen` = terakhir aktif) — tanpa tabel/migrasi baru. Link yang dicabut langsung menampilkan "Link layar tidak aktif".
 - Pembaruan: SSE publik memicu ambil ulang data + ambil ulang tiap menit (status berlangsung/lewat, ganti hari).
 - Perangkat yang disarankan: Chrome di TV box Android / mini PC (browser bawaan Smart TV sering terbatas).

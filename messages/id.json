@@ -931,7 +931,10 @@
       "qNote": "Nilai bertanda Q# adalah asumsi dummy yang menunggu jawaban client (lihat README).",
       "otpNote": "Belum diimplementasikan (fase 7, bila Q8 = ya).",
       "sessionsNote": "Format HH:MM-HH:MM, pisahkan koma. Semua sesi harus sama panjang; 1 sesi = 1 slot. Slot kosong mendatang yang tidak sesuai lagi akan dihapus, slot terisi tetap.",
-      "workDaysNote": "Tanggal merah diblok manual lewat Blok maintenance di Kelola jadwal."
+      "workDaysNote": "Tanggal merah diblok manual lewat Blok maintenance di Kelola jadwal.",
+      "sessions": "Jumlah sesi",
+      "hoursShort": "{h} jam",
+      "sessionsHint": "1 sesi = {slot} jam → total {h} jam simulator. Dipakai untuk menghitung slot yang harus dijadwalkan."
     },
     "people": {
       "title": "Data Personal Peserta",
@@ -978,7 +981,7 @@
     }
   },
   "accountsDisplay": {
-    "tab": "Layar",
+    "tab": "Layar TV",
     "intro": "Link Mode Layar menampilkan jadwal simulator real-time di TV/monitor tanpa login. Siapa pun yang memegang link bisa melihatnya, jadi cabut link bila layar dipindah atau tidak dipakai.",
     "add": "Buat link layar",
     "mTitle": "Link layar baru",

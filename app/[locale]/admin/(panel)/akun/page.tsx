@@ -1,13 +1,12 @@
 import type { Prisma } from "@prisma/client";
 import { getLocale, getTranslations, setRequestLocale } from "next-intl/server";
-import { Link } from "@/lib/i18n/navigation";
+import { Link, redirect } from "@/lib/i18n/navigation";
 import { requireAdminPage } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { fmtShortTs, initials, relAgo } from "@/lib/format";
 import { REG_PILL } from "@/lib/ui";
 import { SearchBox } from "@/components/admin/FilterBar";
-import { AdminEditor, DisplayLinks, LinkActions } from "@/components/admin/AccountsClient";
-import { displayPath, displaySeen, listDisplayLinks } from "@/lib/display";
+import { AdminEditor, LinkActions } from "@/components/admin/AccountsClient";
 
 export default async function Akun({ params, searchParams }: { params: Promise<{ locale: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { locale } = await params;
@@ -19,8 +18,9 @@ export default async function Akun({ params, searchParams }: { params: Promise<{
   const te = await getTranslations("enums");
   const tc = await getTranslations("common");
   const isSA = me.role === "SUPER_ADMIN";
-  const tab = sp.tab === "peserta" ? "peserta" : sp.tab === "layar" && isSA ? "layar" : "admin";
-  const td = await getTranslations("accountsDisplay");
+  // Link Mode Layar dipindah ke Pengaturan → Layar TV (bookmark lama tetap jalan).
+  if (sp.tab === "layar") redirect({ href: isSA ? "/admin/pengaturan?tab=layar" : "/admin/akun", locale });
+  const tab = sp.tab === "peserta" ? "peserta" : "admin";
   const q = sp.q?.trim();
 
   const admins = tab === "admin" ? await db.adminUser.findMany({ orderBy: [{ role: "desc" }, { name: "asc" }] }) : [];
@@ -32,10 +32,6 @@ export default async function Akun({ params, searchParams }: { params: Promise<{
     if (!active) return { k: "REVOKED", pill: "bad", seen: ts[0]!.last_seen_at };
     return active.opened_at ? { k: "OPENED", pill: "ok", seen: active.last_seen_at } : { k: "UNOPENED", pill: "neutral", seen: null };
   };
-  const displays = tab === "layar" ? await (async () => {
-    const [links, seen] = await Promise.all([listDisplayLinks(), displaySeen()]);
-    return links.map((x) => ({ id: x.id, label: x.label, show_names: x.show_names, path: displayPath(x), created: fmtShortTs(new Date(x.created_at), l), seen: seen[x.id] ? fmtShortTs(new Date(seen[x.id]!), l) : null }));
-  })() : [];
   const tick = (v: string) => (v === "✓" ? <b style={{ color: "var(--ok)" }}>✓</b> : <span className={v === "—" ? "faint" : "small"}>{v}</span>);
 
   return (
@@ -49,16 +45,13 @@ export default async function Akun({ params, searchParams }: { params: Promise<{
           <div className="tabs">
             <Link href="/admin/akun" className={tab === "admin" ? "on" : ""}>{t("tabAdmin")}</Link>
             <Link href="/admin/akun?tab=peserta" className={tab === "peserta" ? "on" : ""}>{t("tabParticipants")}</Link>
-            {isSA && <Link href="/admin/akun?tab=layar" className={tab === "layar" ? "on" : ""}>{td("tab")}</Link>}
           </div>
           {tab === "admin" ? <AdminEditor canEdit={isSA} label={t("addAdmin")} /> : tab === "peserta" ? <SearchBox placeholder={tc("search")} width={220} /> : null}
         </div>
       </div>
-      <div className="grid sched-grid" style={{ gridTemplateColumns: tab === "layar" ? "minmax(0,1fr)" : "minmax(0,1fr) 320px", alignItems: "start" }}>
+      <div className="grid sched-grid" style={{ gridTemplateColumns: "minmax(0,1fr) 320px", alignItems: "start" }}>
         <div className="card">
-          {tab === "layar" ? (
-            <DisplayLinks rows={displays} />
-          ) : tab === "admin" ? (
+          {tab === "admin" ? (
             <div className="tbl">
               {!isSA && <div className="banner warn" style={{ margin: 12 }}>{t("saOnly")}</div>}
               <table>
@@ -100,7 +93,7 @@ export default async function Akun({ params, searchParams }: { params: Promise<{
             </div>
           )}
         </div>
-        {tab !== "layar" && <div className="card pad stack" style={{ gap: 14 }}>
+        <div className="card pad stack" style={{ gap: 14 }}>
           <div className="eyebrow">{t("tabMatrix")}</div>
           <div className="tbl">
             <table className="small">
@@ -121,7 +114,7 @@ export default async function Akun({ params, searchParams }: { params: Promise<{
             </table>
           </div>
           <p className="small muted">{t("matrixNote")}</p>
-        </div>}
+        </div>
       </div>
     </>
   );
