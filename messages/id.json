@@ -497,7 +497,7 @@
     "bankTo": "Rekening tujuan",
     "confirmPay": "Konfirmasi pembayaran",
     "confirmPayD": "Kirim bukti transfer + nomor invoice. Verifikasi manual oleh admin pada jam kerja.",
-    "terms": "Sesi dijadwalkan setelah pembayaran terverifikasi. Pembatalan ≤ {h} jam sebelum sesi tidak dapat dikembalikan. Kerja sama PT BWI Aviation × Politeknik Penerbangan Indonesia Curug.",
+    "terms": "Sesi dijadwalkan setelah pembayaran terverifikasi. Pembatalan ≤ {h} jam sebelum sesi tidak dapat dikembalikan.",
     "paidOn": "Dibayar {date}",
     "refunded": "Refund {amount} · {date}",
     "confirmWa": "Konfirmasi via WA",

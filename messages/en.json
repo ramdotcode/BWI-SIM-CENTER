@@ -497,7 +497,7 @@
     "bankTo": "Destination account",
     "confirmPay": "Payment confirmation",
     "confirmPayD": "Send the transfer receipt + invoice number. Manually verified by admin during office hours.",
-    "terms": "Sessions are scheduled after payment is verified. Cancellations ≤ {h} hours before a session are non-refundable. A partnership of PT BWI Aviation × Politeknik Penerbangan Indonesia Curug.",
+    "terms": "Sessions are scheduled after payment is verified. Cancellations ≤ {h} hours before a session are non-refundable.",
     "paidOn": "Paid {date}",
     "refunded": "Refund {amount} · {date}",
     "confirmWa": "Confirm via WA",

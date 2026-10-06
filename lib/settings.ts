@@ -36,7 +36,7 @@ export const SETTING_DEFAULTS = {
   bank_holder: "PT BWI Trivindo Mandiri",
   wa_admin_number: "+6281110301000",
   admin_notify_emails: ["ops@bwiaviation.id"] as string[],
-  company_name: "PT BWI Aviation Indonesia",
+  company_name: "PT BWI Trivindo Mandiri", // nama di invoice (klien, 6 Okt 2026)
   company_address: "Jl. Horizon Broadway Blok M1 No. 11, RT 006/RW 009, Kel. Sampora, Kec. Cisauk, Kab. Tangerang, Banten",
   contact_email: "business@bwiaviation.com", // ditampilkan di invoice (bukan alamat pengirim email)
   location_name: "Sim Center BWI × PPI Curug, Tangerang",

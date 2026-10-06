@@ -166,7 +166,7 @@ Semua tersimpan di tabel `settings` dan bisa diubah di Admin → Pengaturan.
 | Q11 | `session_report_enabled` | true | Laporan sesi PDF ke peserta? (unggah manual oleh admin) |
 | Q12 | kolom form | sesuai spec bagian 7 | Field tambahan untuk pengajuan lisensi DGCA? |
 
-Data riil dari klien (6 Okt 2026, contoh invoice & flyer): rekening BCA 4972372777 a.n. PT BWI Trivindo Mandiri, WA admin 0811-1030-1000, alamat Jl. Horizon Broadway Blok M1 No. 11 Cisauk, email kontak business@bwiaviation.com (setting `contact_email`, tampil di invoice; berbeda dari alamat pengirim email), harga paket sesuai flyer. Masih dummy: jam simulator per paket, instruktur & admin seed, retensi dokumen 24 bulan, domain & pengirim email (Q9).
+Data riil dari klien (6 Okt 2026, contoh invoice & flyer): rekening BCA 4972372777 a.n. PT BWI Trivindo Mandiri, WA admin 0811-1030-1000, alamat Jl. Horizon Broadway Blok M1 No. 11 Cisauk, nama perusahaan di invoice PT BWI Trivindo Mandiri (`company_name`), email kontak business@bwiaviation.com (setting `contact_email`, tampil di invoice; berbeda dari alamat pengirim email), harga paket sesuai flyer. Masih dummy: jam simulator per paket, instruktur & admin seed, retensi dokumen 24 bulan, domain & pengirim email (Q9).
 
 ## Keputusan teknis yang berbeda dari spec (perlu diketahui vendor)
 
