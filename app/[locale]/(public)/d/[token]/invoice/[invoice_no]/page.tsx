@@ -50,7 +50,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ locale
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/brand/bwi-aviation.png" alt="BWI Aviation" />
             <div className="small muted" style={{ marginTop: 8, lineHeight: 1.4 }}>
-              {s.company_name}<br />{s.company_address}<br />{s.sender_email_billing} · {prettyPhone(s.wa_admin_number)}
+              {s.company_name}<br />{s.company_address}<br />{s.contact_email} · {prettyPhone(s.wa_admin_number)}
             </div>
           </div>
           <div className="ttl">

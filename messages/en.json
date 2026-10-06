@@ -897,6 +897,7 @@
         "bank_holder": "Account holder",
         "company_name": "Company name (invoice)",
         "company_address": "Company address (invoice)",
+        "contact_email": "Contact email (shown on invoice)",
         "wa_mode": "WhatsApp mode",
         "wa_admin_number": "Admin WA number",
         "sender_name": "Email sender name",

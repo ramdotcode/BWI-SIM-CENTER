@@ -897,6 +897,7 @@
         "bank_holder": "Atas nama",
         "company_name": "Nama perusahaan (invoice)",
         "company_address": "Alamat perusahaan (invoice)",
+        "contact_email": "Email kontak (ditampilkan di invoice)",
         "wa_mode": "Mode WhatsApp",
         "wa_admin_number": "Nomor WA admin",
         "sender_name": "Nama pengirim email",

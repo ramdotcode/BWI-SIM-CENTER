@@ -106,7 +106,7 @@ function InvoiceDoc({ inv, s, l }: { inv: Inv; s: Settings; l: "id" | "en" }) {
       <Page size="A4" style={st.page}>
         <Text style={[st.stamp, { color: stampColor, borderColor: stampColor }]}>{stampText}</Text>
         <View style={st.top}>
-          <View>
+          <View style={{ flex: 1, maxWidth: 300, paddingRight: 16 }}>
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image tidak memiliki prop alt */}
               <Image src={path.join(BRAND_DIR, "bwi-aviation.png")} style={st.logo} />
@@ -114,7 +114,7 @@ function InvoiceDoc({ inv, s, l }: { inv: Inv; s: Settings; l: "id" | "en" }) {
             <Text style={[st.small, { marginTop: 8 }]}>{s.company_name}</Text>
             <Text style={st.small}>{s.company_address}</Text>
             <Text style={st.small}>
-              {s.sender_email_billing} · {prettyPhone(s.wa_admin_number)}
+              {s.contact_email} · {prettyPhone(s.wa_admin_number)}
             </Text>
           </View>
           <View>
