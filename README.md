@@ -112,6 +112,17 @@ Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga diduku
 
 Kelola jadwal → klik sesi mendatang → **Ganti instruktur**: pilih instruktur lain (atau tanpa instruktur) tanpa melepas slot. Dicek: instruktur aktif, mengajar simulator tersebut, tidak bentrok di simulator lain pada jam yang sama. Opsi beri tahu peserta (bila jadwal sudah dikirim & nama instruktur ditampilkan — Q2). Log: `slot.instructor_changed`. Daftar instruktur dikelola di Pengaturan → Instruktur.
 
+## Perubahan CR-08 (6 Okt 2026, masukan klien)
+
+| Masukan | Implementasi |
+|---|---|
+| Hapus "Tujuan sesi" di langkah Paket & jadwal | Field dihapus dari form & kolom Excel "Tujuan" (kolom DB `purpose` dibiarkan, data lama tetap). |
+| Jatuh tempo = H-1 awal preferensi | Tanggal awal preferensi **wajib**, paling cepat H+3 (`PREF_MIN_LEAD_DAYS`); kalender hanya bisa dipilih mulai H+3. Form menampilkan "Batas pembayaran: H-1". Invoice baru: `due_at` = 23:59 WIB H-1 tanggal awal (bila sudah lewat saat disetujui → akhir hari itu); data lama tanpa preferensi → `invoice_due_days`. |
+| Tandai lunas wajib unggah file | `markPaid` menolak bila tidak ada bukti transfer (unggah baru atau dari konfirmasi WA). |
+| Hapus "FTD" | Kartu simulator di form, Mode Layar, dashboard peserta, email jadwal & undangan kalender, dan invoice (PDF & web). |
+| Invoice lewat tempo: terbit ulang & lunas khusus SA | OVERDUE/EXPIRED: hanya Super Admin yang bisa **Tandai lunas** (EXPIRED langsung dihidupkan & lunas), **Konfirmasi WA**, dan **Terbitkan ulang (invoice telat)** dengan jatuh tempo baru pilihan SA (nomor tetap, dikirim ulang). Admin biasa: "Khusus Super Admin". |
+| Layar TV: nama siswa, instruktur, paket; 3 hari ke depan | Semua link layar menampilkan nama (opsi "tanpa nama" dihapus, link tetap **kode pendek** mis. `/layar/lobi-7k2m`; link lama ikut tampil nama); tabel hari berikutnya 3 hari kerja dengan nama, paket & instruktur. |
+
 ## Perubahan CR-06 (6 Okt 2026): unduh data personal sebagai 1 PDF
 
 Tombol **⤓ PDF** (Super Admin) di samping **⤓ ZIP** — di halaman *Data personal* dan di kotak *Dokumen yang diunggah* pada drawer *Verifikasi pendaftar* (semua status). Hasil: satu PDF A4 = lembar data diri (pas foto, identitas, kontak, lisensi, ICAO, medical, riwayat pendaftaran, daftar lampiran) + semua dokumen terbaru sebagai lampiran (gambar 1 halaman penuh; PDF peserta digabung semua halamannya), tiap halaman berjudul "Lampiran n · jenis dokumen · No. REG" dan bernomor halaman. Dibuat saat diminta (`lib/pdf/participant.tsx`, `@react-pdf/renderer` + `pdf-lib`), tanpa perubahan database. **Batas respons Vercel 4,5 MB:** di mode s3 (Vercel) ZIP/PDF disimpan sementara di R2 `incoming/exports/…` lalu browser diarahkan ke URL unduh bertanda tangan 5 menit (`deliverFile`, `lib/storage`); file dihapus otomatis oleh lifecycle R2 `incoming/` (1 hari). Mode local: dikirim langsung. tercatat di log (`export.participant_pdf`). PDF peserta yang terkunci/rusak diganti halaman keterangan.
@@ -146,7 +157,7 @@ Juga diperbaiki: pilihan opsional (IR, ICAO, posisi, tujuan sesi) yang dibiarkan
 ## Mode Layar (papan jadwal TV, CR-01)
 
 Halaman `/layar/{token}` menampilkan jadwal simulator real-time untuk TV/monitor **tanpa login** (hari ini besar per simulator × sesi + 4 hari kerja berikutnya, jam WIB, tombol layar penuh, layar dijaga tetap menyala, ukuran huruf menyesuaikan layar).
-- Link dibuat/disalin/dicabut oleh **Super Admin** di Admin → **Pengaturan → tab Layar TV** (dipindah dari Manajemen akun 6 Okt 2026; link lama `/admin/akun?tab=layar` dialihkan otomatis). Tiap link punya opsi **tampilkan nama** (peserta, paket, instruktur, alasan maintenance); defaultnya **tanpa nama** — server tidak mengirim data pribadi sama sekali untuk link tanpa nama.
+- Link dibuat/disalin/dicabut oleh **Super Admin** di Admin → **Pengaturan → tab Layar TV** (dipindah dari Manajemen akun 6 Okt 2026; link lama `/admin/akun?tab=layar` dialihkan otomatis). Semua link menampilkan nama sejak Okt 2026 (sebelumnya opsi **tampilkan nama** (peserta, paket, instruktur, alasan maintenance); defaultnya **tanpa nama** — server tidak mengirim data pribadi sama sekali untuk link tanpa nama.
 - Disimpan di tabel `settings` (`display_links`, hash token + salinan terenkripsi; `display_seen` = terakhir aktif) — tanpa tabel/migrasi baru. Link yang dicabut langsung menampilkan "Link layar tidak aktif".
 - Pembaruan: SSE publik memicu ambil ulang data + ambil ulang tiap menit (status berlangsung/lewat, ganti hari).
 - Perangkat yang disarankan: Chrome di TV box Android / mini PC (browser bawaan Smart TV sering terbatas).

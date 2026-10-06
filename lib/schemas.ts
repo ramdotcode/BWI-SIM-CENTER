@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { todayJkt } from "./format";
+import { addDays, todayJkt } from "./format";
 
 // Satu sumber: field formulir = kolom database = kolom Excel. Dipakai di client & server.
 
@@ -114,17 +114,22 @@ export const step3 = z.object({
   documents: z.record(z.string(), z.string().min(8)),
 });
 
+/** Tanggal awal preferensi paling cepat H+N dari hari daftar (waktu verifikasi + bayar H-1). */
+export const PREF_MIN_LEAD_DAYS = 3;
+/** Jatuh tempo pembayaran = H-1 tanggal awal preferensi ("YYYY-MM-DD"). */
+export const payByDate = (prefFrom: string) => addDays(prefFrom, -1);
+
 const step4Shape = {
   simulator: z.enum(["A320", "B737"]),
   package: req(),
-  pref_date_from: optDate,
+  pref_date_from: date,
   pref_date_to: optDate,
   pref_time: z.enum(["MORNING", "AFTERNOON", "EVENING", "FLEXIBLE"]).default("FLEXIBLE"),
   purpose: optEnum(PURPOSES),
   notes: opt.pipe(z.string().max(1000).optional()),
 };
 function checkStep4(v: { pref_date_from?: string; pref_date_to?: string }, ctx: Ctx) {
-  if (v.pref_date_from && v.pref_date_from <= todayJkt()) issue(ctx, "pref_date_from", "past");
+  if (v.pref_date_from && v.pref_date_from < addDays(todayJkt(), PREF_MIN_LEAD_DAYS)) issue(ctx, "pref_date_from", "minLead");
   if (v.pref_date_from && v.pref_date_to && v.pref_date_from > v.pref_date_to) issue(ctx, "pref_date_to", "range");
 }
 

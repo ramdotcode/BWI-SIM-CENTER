@@ -552,5 +552,10 @@ th.sticky-col{background:var(--teal-tint);z-index:2}
 .disp .next td.tmc{font-family:var(--mono);font-weight:600;color:var(--teal-deep);white-space:nowrap}
 .disp .next td.tmc small{display:block;font-weight:400;color:var(--muted);font-size:.8em}
 .disp .next tr.first:not(:first-child) td{padding-top:.5em}
+/* 3 hari ke depan: sel lebih lebar → nama, paket & instruktur lebih besar agar terbaca dari jauh */
+.disp .next .dc{min-height:3.1em}
+.disp .next .dc .nm{font-size:1.3em}
+.disp .next .dc .sub{font-size:.9em}
+.disp .next th{font-size:.95em}
 }
 

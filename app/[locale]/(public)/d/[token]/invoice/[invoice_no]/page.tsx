@@ -79,7 +79,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ locale
             <thead><tr><th>{t("colDesc")}</th><th style={{ textAlign: "right" }}>{t("colHours")}</th><th style={{ textAlign: "right" }}>{t("colPrice")}</th><th style={{ textAlign: "right" }}>{t("colAmount")}</th></tr></thead>
             <tbody>
               <tr>
-                <td><b>{l === "id" ? r.package.name_id : r.package.name_en}</b><div className="small muted">{t("itemSub", { sim: `${r.simulator.code === "A320" ? "Airbus A320" : "Boeing 737NG"} FTD` })}</div></td>
+                <td><b>{l === "id" ? r.package.name_id : r.package.name_en}</b><div className="small muted">{t("itemSub", { sim: `${r.simulator.code === "A320" ? "Airbus A320" : "Boeing 737NG"}` })}</div></td>
                 <td style={{ textAlign: "right" }} className="mono">{r.hours_snapshot}</td>
                 <td style={{ textAlign: "right" }} className="mono">{num(inv.subtotal)}</td>
                 <td style={{ textAlign: "right" }} className="mono">{num(inv.subtotal)}</td>

@@ -4,6 +4,7 @@ import { getSettings, isWorkDay, slotStarts } from "../settings";
 import { addDays, dateOnly, todayJkt, ymd } from "../format";
 import { ensureSlots, isPast } from "./slots";
 import { viewStatus, type ViewStatus } from "../slot-view";
+import { PREF_MIN_LEAD_DAYS } from "../schemas";
 
 /** Papan publik hari ini: per jam × simulator, tanpa nama. */
 export async function todayBoard() {
@@ -38,7 +39,7 @@ export async function activePackages() {
  */
 export async function availabilityDays(simCode: string) {
   const s = await getSettings();
-  const from = addDays(todayJkt(), 1);
+  const from = addDays(todayJkt(), PREF_MIN_LEAD_DAYS);
   const to = addDays(todayJkt(), s.slot_horizon_days);
   const sim = await db.simulator.findFirst({ where: { code: simCode, active: true } });
   const starts = slotStarts(s).map((x) => x.start);

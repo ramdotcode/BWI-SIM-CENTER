@@ -84,7 +84,7 @@ async function deliver(template: TemplateName, registrationId: number, opts: { c
               date: sl.date.toISOString().slice(0, 10),
               start: sl.start_time,
               end: sl.end_time,
-              title: `BWI Sim Center · ${ctx.simulator.code} FTD (${fmtTime(sl.start_time, l)})`,
+              title: `BWI Sim Center · ${ctx.simulator.code} (${fmtTime(sl.start_time, l)})`,
               location: s.location_name,
               description: `${ctx.reg_no} · ${l === "id" ? ctx.package.name_id : ctx.package.name_en}${extra.dashboardLink ? `\n${extra.dashboardLink}` : ""}`,
             })),

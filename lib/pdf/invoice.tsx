@@ -75,7 +75,7 @@ function T(l: "id" | "en") {
     hours: id ? "Jam" : "Hours",
     price: id ? "Harga/paket" : "Price/package",
     amount: id ? "Jumlah" : "Amount",
-    itemSub: (sim: string) => (id ? `${sim} FTD · termasuk briefing 30 mnt & debriefing · instruktur` : `${sim} FTD · incl. 30-min briefing & debriefing · instructor`),
+    itemSub: (sim: string) => (id ? `${sim} · termasuk briefing 30 mnt & debriefing · instruktur` : `${sim} · incl. 30-min briefing & debriefing · instructor`),
     subtotal: "Subtotal",
     vat: (p: number) => (id ? `PPN ${p}%` : `VAT ${p}%`),
     total: "Total",

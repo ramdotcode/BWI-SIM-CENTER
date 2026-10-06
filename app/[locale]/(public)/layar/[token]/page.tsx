@@ -17,6 +17,6 @@ export default async function Page({ params }: { params: Promise<{ locale: strin
   if (!rateLimit(`layar:${clientIp(await headers())}`, 60, 60_000).ok) notFound();
   const link = await resolveDisplay(token, true);
   if (!link) notFound();
-  const data = await displayBoard(link.show_names);
+  const data = await displayBoard(true);
   return <DisplayBoard token={decodeURIComponent(token)} initial={JSON.parse(JSON.stringify(data))} label={link.label} />;
 }

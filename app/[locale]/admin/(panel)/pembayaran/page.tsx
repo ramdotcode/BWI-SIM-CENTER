@@ -6,6 +6,7 @@ import { fmtDate, fmtShortTs, fmtTsDate, monthLong, num, rupiahShort, todayJkt, 
 import { INV_PILL } from "@/lib/ui";
 import { FilterSelect, SearchBox } from "@/components/admin/FilterBar";
 import { InvoiceActions } from "@/components/admin/InvoiceActions";
+import { requireAdminPage } from "@/lib/auth";
 
 const STATUSES: InvoiceStatus[] = ["UNPAID", "AWAITING_VERIFICATION", "PAID", "OVERDUE", "EXPIRED", "CANCELLED"];
 
@@ -18,6 +19,7 @@ export default async function Pembayaran({ params, searchParams }: { params: Pro
   const te = await getTranslations("enums");
   const tc = await getTranslations("common");
   const s = await getSettings();
+  const me = await requireAdminPage();
   const cur = todayJkt().slice(0, 7);
   const m = sp.inv || sp.m === "all" ? "all" : /^\d{4}-\d{2}$/.test(sp.m ?? "") ? sp.m! : cur;
   const range = m === "all" ? undefined : { gte: wibInstant(`${m}-01`), lt: wibInstant(nextMonth(m)) };
@@ -80,6 +82,8 @@ export default async function Pembayaran({ params, searchParams }: { params: Pro
                       <td>
                         <InvoiceActions
                           dueDays={s.invoice_due_days}
+                          isSA={me.role === "SUPER_ADMIN"}
+                          hasProof={!!i.proof_storage_key}
                           inv={{ id: i.id, no: i.invoice_no, status: i.status, total: Number(i.total), amount_received: i.amount_received != null ? Number(i.amount_received) : null, name: r.participant.full_name, whatsapp: r.participant.whatsapp, due: i.due_at.toISOString(), reg_id: r.id, reg_status: r.status, open: openId === i.id }}
                         />
                       </td>

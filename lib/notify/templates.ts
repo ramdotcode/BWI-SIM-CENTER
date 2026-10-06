@@ -107,7 +107,7 @@ function sessionCards(ctx: RegCtx, s: Settings, l: Loc) {
       const d = sl.date;
       return `<table role="presentation" width="100%" style="background:${C.teal};border-radius:12px;margin:0 0 10px;color:#fff"><tr>
 <td width="80" style="padding:14px 0 14px 16px;vertical-align:middle"><div style="font-size:34px;font-weight:700;line-height:1;color:${C.lime}">${String(d.getUTCDate()).padStart(2, "0")}</div><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#B9D3D9">${fmtDate(d, l, { weekday: true }).split(",")[0]} · ${fmtDate(d, l, { year: false }).split(" ")[1]}</div></td>
-<td style="padding:14px 16px 14px 8px"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#B9D3D9">${l === "id" ? `Sesi ${i + 1} dari ${total}` : `Session ${i + 1} of ${total}`}</div><div style="font-weight:700;font-size:16px">${fmtTime(sl.start_time, l)} – ${fmtTime(sl.end_time, l)} WIB</div><div style="font-size:13px;color:#C6DBE0">${ctx.simulator.code} FTD · ${e(ctx.simulator.bay)}${ins}</div></td></tr></table>`;
+<td style="padding:14px 16px 14px 8px"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#B9D3D9">${l === "id" ? `Sesi ${i + 1} dari ${total}` : `Session ${i + 1} of ${total}`}</div><div style="font-weight:700;font-size:16px">${fmtTime(sl.start_time, l)} – ${fmtTime(sl.end_time, l)} WIB</div><div style="font-size:13px;color:#C6DBE0">${ctx.simulator.code} · ${e(ctx.simulator.bay)}${ins}</div></td></tr></table>`;
     })
     .join("");
 }

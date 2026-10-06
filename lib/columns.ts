@@ -75,7 +75,6 @@ export const COLUMNS: Col[] = [
   { key: "pref_date_from", id: "Pref. dari", en: "Pref. from", type: "date", get: (r) => r.pref_date_from },
   { key: "pref_date_to", id: "Pref. sampai", en: "Pref. to", type: "date", get: (r) => r.pref_date_to },
   { key: "pref_time", id: "Pref. waktu", en: "Pref. time", type: "text", get: (r) => E(`prefTimeShort.${r.pref_time}`) },
-  { key: "purpose", id: "Tujuan", en: "Purpose", type: "text", get: (r) => (r.purpose ? E(`purpose.${r.purpose}`) : "") },
   { key: "notes", id: "Catatan", en: "Notes", type: "text", get: (r) => r.notes },
   // Status
   { key: "verif_status", id: "Status verif.", en: "Verification", type: "text", get: verifStatus },

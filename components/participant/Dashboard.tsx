@@ -230,7 +230,7 @@ export function ParticipantDashboard({ token, initial }: { token: string; initia
                     {fmtTime(d.next.start, l)} – {fmtTime(d.next.end, l)} WIB
                   </b>
                   <span style={{ fontSize: 13, color: "#C6DBE0" }}>
-                    {d.reg.sim} FTD · {d.reg.bay}
+                    {d.reg.sim} · {d.reg.bay}
                     {d.next.instructor ? ` · ${d.next.instructor}` : ""}
                   </span>
                 </div>

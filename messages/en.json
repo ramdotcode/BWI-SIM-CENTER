@@ -45,8 +45,8 @@
       "B737": "Boeing 737NG"
     },
     "simFtd": {
-      "A320": "Airbus A320 FTD",
-      "B737": "Boeing 737NG FTD"
+      "A320": "Airbus A320",
+      "B737": "Boeing 737NG"
     },
     "perPackage": "/ package",
     "wib": "WIB",
@@ -324,7 +324,7 @@
     "secPkg": "Package",
     "pkgMeta": "{h} h · {s} sessions × {slot} h",
     "secPref": "Schedule preference",
-    "secPrefHint": "— pick a date range on the calendar; full dates cannot be selected. Final schedule is set by admin",
+    "secPrefHint": "— earliest date required (at least {n} days from now); full dates cannot be selected. Final schedule is set by admin",
     "pref_date_from": "Earliest date",
     "pref_date_to": "Latest date",
     "pref_time": "Preferred time",
@@ -385,8 +385,12 @@
       "agree": "Tick the declaration to continue",
       "generic": "Invalid value",
       "expired": "Expired — please renew the certificate first",
-      "past": "Choose a start date from tomorrow"
-    }
+      "past": "Choose a start date from tomorrow",
+      "minLead": "Earliest date must be at least {n} days from today"
+    },
+    "payByNote": "Pick your earliest preferred date. Payment must be completed by the day before that date, so the earliest date is {n} days from now.",
+    "payByPicked": "Payment deadline: {date} (the day before your earliest date {start}). If unpaid by then, the invoice becomes overdue and scheduling cannot proceed.",
+    "rvPayBy": "Pay by {date}"
   },
   "submitted": {
     "eyebrow": "Registration submitted",
@@ -661,7 +665,7 @@
       "confirmWa": "Record WA confirmation",
       "resend": "Resend",
       "followUp": "Follow up on WA",
-      "reactivate": "Reactivate",
+      "reactivate": "Reissue (late invoice)",
       "cancel": "Cancel / refund",
       "schedule": "Schedule",
       "pdf": "PDF",
@@ -676,8 +680,8 @@
       "diffWarn": "Amount differs from the total ({total}). Difference {diff}. The invoice stays Awaiting verification unless ticked below.",
       "mWaTitle": "Record WhatsApp confirmation",
       "waAt": "Confirmation time",
-      "mReactTitle": "Reactivate invoice",
-      "reactDesc": "The invoice number stays the same. New due date = today + {n} days.",
+      "mReactTitle": "Reissue late invoice",
+      "reactDesc": "The invoice number stays the same. The invoice is reactivated with a new due date and resent to the participant (email & WA).",
       "mCancelTitle": "Cancel registration / refund",
       "cancelReason": "Cancellation reason",
       "refundAmount": "Refund amount (Rp, 0 if none)",
@@ -688,10 +692,17 @@
       "toastPartial": "Amount recorded · invoice stays awaiting verification (difference)",
       "toastWa": "WA confirmation recorded",
       "toastResent": "Invoice resent",
-      "toastReact": "Invoice reactivated · new due date {date}",
+      "toastReact": "Invoice reissued · new due date {date}",
       "toastCancel": "Registration cancelled",
       "followText": "Hello {name}, this is BWI Aviation Sim Center. Invoice {no} of {total} is due on {due}. Please confirm your payment. Thank you.",
-      "received": "received {amount}"
+      "received": "received {amount}",
+      "newDue": "New due date",
+      "proofReq": "Transfer receipt (required, JPG/PNG/PDF)",
+      "proofHave": "A receipt is already on file from the WA confirmation — upload a new one to replace it",
+      "saOnlyShort": "Super Admin only",
+      "saOnlyLate": "Overdue/expired invoices can only be paid or reissued by a Super Admin",
+      "lateOverdueNote": "This invoice is past its due date — payment is recorded by a Super Admin.",
+      "lateExpiredNote": "This invoice has expired — marking it paid reactivates the invoice & registration and settles it immediately."
     },
     "sched": {
       "eyebrow": "Arrange simulator sessions",
@@ -1013,19 +1024,15 @@
   },
   "accountsDisplay": {
     "tab": "TV screens",
-    "intro": "Display Mode links show the real-time simulator schedule on a TV/monitor without logging in. Anyone holding the link can view it, so revoke links for screens that move or are no longer used.",
+    "intro": "TV screen links show the simulator schedule on a TV/monitor without login, including student, instructor and package names. Anyone with the link can view it, so revoke the link when a screen is moved or no longer used.",
     "add": "Create display link",
     "mTitle": "New display link",
     "label": "Display name / location",
     "labelPh": "e.g. Lobby, Ops room, Simulator room",
-    "showNames": "Show participant & instructor names",
-    "showNamesWarn": "Internal rooms only. Screens in public areas should not show names (participant personal data, PDP law).",
+    "showNamesWarn": "The screen shows student, instructor and package names — place it in an internal room, not a public area (participant personal data).",
     "colLabel": "Display",
-    "colMode": "Content",
     "colCreated": "Created",
     "colSeen": "Last active",
-    "modeNames": "With names",
-    "modeAnon": "No names",
     "never": "Not opened yet",
     "copy": "Copy link",
     "open": "Open",
@@ -1036,6 +1043,6 @@
     "empty": "No display links yet.",
     "saOnly": "Only the Super Admin can manage display links.",
     "howTo": "Setup: open the link in Chrome on a TV box / mini PC and press Full screen. The screen stays on and the schedule updates automatically.",
-    "secretLink": "secret link (shows names)"
+    "secretLink": "old link (long code)"
   }
 }

@@ -5,7 +5,7 @@ import { HttpError, type AdminCtx } from "../auth";
 import { getSettings, type Settings } from "../settings";
 import { nextInvoiceNo } from "../counters";
 import { logActivity } from "../activity";
-import { addDays, todayJkt, wibInstant, fmtTsDate } from "../format";
+import { addDays, todayJkt, wibInstant, fmtTsDate, ymd } from "../format";
 import { notify } from "../notify";
 import { publish } from "../realtime";
 import { assertInvoice, assertReg } from "../state-machine";
@@ -13,6 +13,19 @@ import { assertInvoice, assertReg } from "../state-machine";
 /** Jatuh tempo = akhir hari (23:59:59 WIB) pada hari ini + N hari. */
 export function dueFromToday(days: number): Date {
   return new Date(wibInstant(addDays(todayJkt(), days), "23:59").getTime() + 59_000);
+}
+
+/** Akhir hari (23:59:59 WIB) tanggal "YYYY-MM-DD". */
+const endOfDay = (d: string) => new Date(wibInstant(d, "23:59").getTime() + 59_000);
+
+/**
+ * Jatuh tempo invoice baru: H-1 tanggal awal preferensi peserta (masukan klien, Okt 2026); bila H-1 sudah lewat
+ * saat invoice terbit → akhir hari ini. Tanpa preferensi (data lama) → N hari dari setting invoice_due_days.
+ */
+export function dueForRegistration(reg: Pick<Registration, "pref_date_from">, s: Settings): Date {
+  if (!reg.pref_date_from) return dueFromToday(s.invoice_due_days);
+  const payBy = addDays(ymd(reg.pref_date_from), -1);
+  return endOfDay(payBy < todayJkt() ? todayJkt() : payBy);
 }
 
 /** Nomor BWI/INV/YYYY/MM/NNNN, counter per bulan (atomik), tidak dipakai ulang. */
@@ -23,7 +36,7 @@ export async function issueInvoice(tx: Tx, reg: Registration, s: Settings) {
   const subtotal = reg.price_snapshot;
   const vat = BigInt(Math.round((Number(subtotal) * s.vat_percent) / 100));
   return tx.invoice.create({
-    data: { invoice_no, registration_id: reg.id, due_at: dueFromToday(s.invoice_due_days), subtotal, vat, total: subtotal + vat, status: "UNPAID" },
+    data: { invoice_no, registration_id: reg.id, due_at: dueForRegistration(reg, s), subtotal, vat, total: subtotal + vat, status: "UNPAID" },
   });
 }
 
@@ -37,6 +50,7 @@ async function getInv(tx: Tx, id: number) {
 export async function confirmWa(id: number, admin: AdminCtx, opts: { at?: string; proof_key?: string; note?: string }) {
   const inv = await db.$transaction(async (tx) => {
     const inv = await getInv(tx, id);
+    if (["OVERDUE", "EXPIRED"].includes(inv.status) && admin.role !== "SUPER_ADMIN") throw new HttpError(403, "Invoice lewat tempo hanya bisa diproses Super Admin", "forbidden");
     assertInvoice(inv.status, "AWAITING_VERIFICATION");
     const at = opts.at ? new Date(opts.at) : new Date();
     await tx.invoice.update({ where: { id }, data: { status: "AWAITING_VERIFICATION", wa_confirmed_at: at, proof_storage_key: opts.proof_key ?? inv.proof_storage_key, note: opts.note ?? inv.note } });
@@ -52,7 +66,22 @@ export async function confirmWa(id: number, admin: AdminCtx, opts: { at?: string
  */
 export async function markPaid(id: number, admin: AdminCtx, opts: { amount: number; paid_at: string; proof_key?: string; note?: string; accept_difference?: boolean }) {
   const res = await db.$transaction(async (tx) => {
-    const inv = await getInv(tx, id);
+    let inv = await getInv(tx, id);
+    // Lewat tempo / kedaluwarsa: hanya Super Admin (masukan klien Okt 2026).
+    if (["OVERDUE", "EXPIRED"].includes(inv.status) && admin.role !== "SUPER_ADMIN") throw new HttpError(403, "Invoice lewat tempo hanya bisa diproses Super Admin", "forbidden");
+    // Tandai lunas wajib ada bukti transfer (diunggah sekarang atau dari konfirmasi WA sebelumnya).
+    if (!opts.proof_key && !inv.proof_storage_key) throw new HttpError(422, "Unggah bukti transfer terlebih dahulu", "proof_required");
+    if (inv.status === "EXPIRED") {
+      // SA melunasi invoice kedaluwarsa langsung: hidupkan kembali (EXPIRED → UNPAID, REG → PENDING_PAYMENT) lalu proses seperti biasa.
+      assertInvoice("EXPIRED", "UNPAID");
+      await tx.invoice.update({ where: { id }, data: { status: "UNPAID" } });
+      if (inv.registration.status === "EXPIRED") {
+        assertReg("EXPIRED", "PENDING_PAYMENT");
+        await tx.registration.update({ where: { id: inv.registration_id }, data: { status: "PENDING_PAYMENT" } });
+      }
+      await logActivity({ type: "ADMIN", id: admin.id }, "invoice.revived_for_payment", "invoice", id, { invoice_no: inv.invoice_no }, tx);
+      inv = await getInv(tx, id);
+    }
     const amount = BigInt(Math.round(opts.amount));
     const paidAt = new Date(`${opts.paid_at}T12:00:00+07:00`);
     const matches = amount === inv.total;
@@ -89,13 +118,18 @@ export async function resendInvoice(id: number, admin: AdminCtx) {
   await logActivity({ type: "ADMIN", id: admin.id }, "invoice.resent", "invoice", id, { invoice_no: inv.invoice_no });
 }
 
-/** E-02: OVERDUE/EXPIRED → UNPAID dengan jatuh tempo baru, nomor tetap. */
-export async function reactivateInvoice(id: number, admin: AdminCtx) {
+/**
+ * E-02 "Terbitkan ulang (invoice telat)" — khusus Super Admin: OVERDUE/EXPIRED → UNPAID dengan jatuh tempo baru
+ * (dipilih SA, default N hari dari setting), nomor invoice tetap, invoice dikirim ulang ke peserta.
+ */
+export async function reactivateInvoice(id: number, admin: AdminCtx, dueDate?: string) {
   const s = await getSettings();
+  if (admin.role !== "SUPER_ADMIN") throw new HttpError(403, "Invoice lewat tempo hanya bisa diproses Super Admin", "forbidden");
+  if (dueDate && dueDate < todayJkt()) throw new HttpError(422, "Jatuh tempo baru tidak boleh sebelum hari ini");
   const inv = await db.$transaction(async (tx) => {
     const inv = await getInv(tx, id);
-    if (!["OVERDUE", "EXPIRED"].includes(inv.status)) throw new HttpError(409, "Hanya invoice lewat tempo / kedaluwarsa yang bisa diaktifkan ulang");
-    const due = dueFromToday(s.invoice_due_days);
+    if (!["OVERDUE", "EXPIRED"].includes(inv.status)) throw new HttpError(409, "Hanya invoice lewat tempo / kedaluwarsa yang bisa diterbitkan ulang");
+    const due = dueDate ? endOfDay(dueDate) : dueFromToday(s.invoice_due_days);
     await tx.invoice.update({ where: { id }, data: { status: "UNPAID", due_at: due, overdue_at: null, reminder_sent_at: null } });
     if (inv.registration.status === "EXPIRED") {
       assertReg("EXPIRED", "PENDING_PAYMENT");

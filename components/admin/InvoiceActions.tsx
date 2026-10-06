@@ -37,7 +37,7 @@ function Proof({ kind, onDone, label }: { kind: string; onDone: (id: string | un
   );
 }
 
-export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number }) {
+export function InvoiceActions({ inv, dueDays, isSA, hasProof }: { inv: InvRow; dueDays: number; isSA: boolean; hasProof: boolean }) {
   const t = useTranslations("admin.pay");
   const tc = useTranslations("common");
   const l = useLocale() as "id" | "en";
@@ -46,7 +46,11 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
   const [menu, setMenu] = useState(false);
   // Menu dirender position:fixed agar tidak terpotong oleh .tbl (overflow-x:auto).
   const [pos, setPos] = useState<{ top: number | "auto"; bottom: number | "auto"; right: number }>({ top: 0, bottom: "auto", right: 0 });
-  const [modal, setModal] = useState<null | "paid" | "wa" | "react" | "cancel">(inv.open && ["UNPAID", "AWAITING_VERIFICATION", "OVERDUE"].includes(inv.status) ? "paid" : null);
+  // Lewat tempo/kedaluwarsa: hanya Super Admin yang bisa melunasi / menerbitkan ulang (masukan klien Okt 2026).
+  const late = ["OVERDUE", "EXPIRED"].includes(inv.status);
+  const payable = ["UNPAID", "AWAITING_VERIFICATION", "OVERDUE", "EXPIRED"].includes(inv.status) && (!late || isSA);
+  const [modal, setModal] = useState<null | "paid" | "wa" | "react" | "cancel">(inv.open && payable ? "paid" : null);
+  const [newDue, setNewDue] = useState(() => { const d = new Date(Date.now() + 7 * 3600_000 + dueDays * 86400_000); return d.toISOString().slice(0, 10); });
   const [busy, setBusy] = useState(false);
   const [amount, setAmount] = useState(String(inv.amount_received ?? inv.total));
   const [paidAt, setPaidAt] = useState(todayJkt());
@@ -91,16 +95,16 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
     }
     setBusy(false);
   };
-  const open = ["UNPAID", "AWAITING_VERIFICATION", "OVERDUE"].includes(inv.status);
+  const open = payable && inv.status !== "EXPIRED";
   const diff = Number(amount || 0) - inv.total;
   const followText = t("followText", { name: inv.name, no: inv.no, total: rupiah(inv.total), due: fmtDate(new Date(new Date(inv.due).getTime() + 7 * 3600_000), l) });
   const followHref = `https://wa.me/${inv.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(followText)}`;
-  const primary = open ? (
+  const primary = payable ? (
     <button className="btn xs ok" onClick={() => setModal("paid")}>{t("markPaid")}</button>
   ) : inv.status === "PAID" && ["PAID", "SCHEDULED", "IN_PROGRESS"].includes(inv.reg_status) ? (
     <a className="btn xs ghost" href={`${l === "en" ? "/en" : ""}/admin/jadwal?reg=${inv.reg_id}`}>{t("schedule")}</a>
-  ) : ["OVERDUE", "EXPIRED"].includes(inv.status) ? (
-    <button className="btn xs ghost" onClick={() => setModal("react")}>{t("reactivate")}</button>
+  ) : late ? (
+    <span className="small faint" title={t("saOnlyLate")}>{t("saOnlyShort")}</span>
   ) : null;
 
   return (
@@ -110,11 +114,11 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
         <button className="btn xs ghost" aria-haspopup="menu" aria-expanded={menu} onClick={toggleMenu}>⋯</button>
         {menu && (
           <div className="pop" role="menu" style={{ position: "fixed", ...pos }}>
-            {open && <button onClick={() => { setModal("paid"); setMenu(false); }}>{t("markPaid")}</button>}
+            {payable && <button onClick={() => { setModal("paid"); setMenu(false); }}>{t("markPaid")}</button>}
             {open && <button onClick={() => { setModal("wa"); setMenu(false); }}>{t("confirmWa")}</button>}
             {inv.status !== "CANCELLED" && inv.status !== "EXPIRED" && <button onClick={() => run(async () => { await api(`/api/admin/invoices/${inv.id}/resend`, { body: {} }); return t("toastResent"); })}>{t("resend")}</button>}
             {open && <a href={followHref} target="_blank" rel="noopener noreferrer">{t("followUp")}</a>}
-            {["OVERDUE", "EXPIRED"].includes(inv.status) && <button onClick={() => { setModal("react"); setMenu(false); }}>{t("reactivate")}</button>}
+            {late && isSA && <button onClick={() => { setModal("react"); setMenu(false); }}>{t("reactivate")}</button>}
             <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer">{t("pdf")}</a>
             {inv.status !== "CANCELLED" && inv.reg_status !== "COMPLETED" && (
               <>
@@ -130,7 +134,7 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
         open={modal === "paid"}
         onClose={() => setModal(null)}
         title={`${t("mPaidTitle")} · ${inv.no}`}
-        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn ok" disabled={busy || !amount} onClick={() => run(async () => { const r = await api<{ paid: boolean; invoice_no: string }>(`/api/admin/invoices/${inv.id}/mark-paid`, { body: { amount: Number(amount), paid_at: paidAt, proof_upload: proof, note: note || undefined, accept_difference: accept } }); return r.paid ? t("toastPaid", { no: r.invoice_no }) : t("toastPartial"); })}>{t("markPaid")}</button></>}
+        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn ok" disabled={busy || !amount || (!proof && !hasProof)} onClick={() => run(async () => { const r = await api<{ paid: boolean; invoice_no: string }>(`/api/admin/invoices/${inv.id}/mark-paid`, { body: { amount: Number(amount), paid_at: paidAt, proof_upload: proof, note: note || undefined, accept_difference: accept } }); return r.paid ? t("toastPaid", { no: r.invoice_no }) : t("toastPartial"); })}>{t("markPaid")}</button></>}
       >
         <div className="row between" style={{ padding: "12px 14px", background: "var(--teal-tint)", borderRadius: 8 }}>
           <b>{inv.name}</b>
@@ -146,7 +150,8 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
             <label className="row small"><input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} />{t("acceptDiff")}</label>
           </>
         )}
-        <Proof kind="PAYMENT_PROOF" onDone={setProof} label={inv.status === "AWAITING_VERIFICATION" ? t("proofOpt") : t("proof")} />
+        {late && <div className="banner warn">{inv.status === "EXPIRED" ? t("lateExpiredNote") : t("lateOverdueNote")}</div>}
+        <Proof kind="PAYMENT_PROOF" onDone={setProof} label={hasProof ? t("proofHave") : t("proofReq")} />
         <label className="field"><span className="flabel">{t("note")}</span><input className="in" value={note} onChange={(e) => setNote(e.target.value)} /></label>
       </Modal>
 
@@ -165,9 +170,10 @@ export function InvoiceActions({ inv, dueDays }: { inv: InvRow; dueDays: number 
         open={modal === "react"}
         onClose={() => setModal(null)}
         title={t("mReactTitle")}
-        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn" disabled={busy} onClick={() => run(async () => { const r = await api<{ due: string }>(`/api/admin/invoices/${inv.id}/reactivate`, { body: {} }); return t("toastReact", { date: r.due }); })}>{t("reactivate")}</button></>}
+        footer={<><button className="btn ghost" onClick={() => setModal(null)}>{tc("cancel")}</button><button className="btn" disabled={busy || !newDue} onClick={() => run(async () => { const r = await api<{ due: string }>(`/api/admin/invoices/${inv.id}/reactivate`, { body: { due: newDue } }); return t("toastReact", { date: r.due }); })}>{t("reactivate")}</button></>}
       >
-        <p>{t("reactDesc", { n: dueDays })}</p>
+        <p>{t("reactDesc")}</p>
+        <label className="field"><span className="flabel">{t("newDue")}</span><input className="in" type="date" min={todayJkt()} value={newDue} onChange={(e) => setNewDue(e.target.value)} /></label>
       </Modal>
 
       <Modal

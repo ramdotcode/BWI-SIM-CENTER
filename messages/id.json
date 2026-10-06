@@ -45,8 +45,8 @@
       "B737": "Boeing 737NG"
     },
     "simFtd": {
-      "A320": "Airbus A320 FTD",
-      "B737": "Boeing 737NG FTD"
+      "A320": "Airbus A320",
+      "B737": "Boeing 737NG"
     },
     "perPackage": "/ paket",
     "wib": "WIB",
@@ -324,7 +324,7 @@
     "secPkg": "Paket",
     "pkgMeta": "{h} jam · {s} sesi × {slot} jam",
     "secPref": "Preferensi jadwal",
-    "secPrefHint": "— pilih rentang tanggal pada kalender; tanggal penuh tidak bisa dipilih. Jadwal final ditetapkan admin",
+    "secPrefHint": "— wajib pilih tanggal awal (paling cepat {n} hari dari sekarang); tanggal penuh tidak bisa dipilih. Jadwal final ditetapkan admin",
     "pref_date_from": "Tanggal paling awal",
     "pref_date_to": "Tanggal paling akhir",
     "pref_time": "Preferensi waktu",
@@ -385,8 +385,12 @@
       "agree": "Centang pernyataan untuk melanjutkan",
       "generic": "Isian tidak valid",
       "expired": "Sudah tidak berlaku — perbarui sertifikat terlebih dahulu",
-      "past": "Pilih tanggal mulai besok"
-    }
+      "past": "Pilih tanggal mulai besok",
+      "minLead": "Tanggal awal paling cepat {n} hari dari hari ini"
+    },
+    "payByNote": "Pilih tanggal awal preferensi. Pembayaran wajib lunas paling lambat H-1 sebelum tanggal awal tersebut, jadi tanggal paling cepat {n} hari dari sekarang.",
+    "payByPicked": "Batas pembayaran: {date} (H-1 sebelum tanggal awal {start}). Bila belum lunas, invoice lewat tempo dan jadwal tidak bisa diproses.",
+    "rvPayBy": "Bayar paling lambat {date}"
   },
   "submitted": {
     "eyebrow": "Pendaftaran terkirim",
@@ -661,7 +665,7 @@
       "confirmWa": "Catat konfirmasi WA",
       "resend": "Kirim ulang",
       "followUp": "Follow up WA",
-      "reactivate": "Aktifkan ulang",
+      "reactivate": "Terbitkan ulang (invoice telat)",
       "cancel": "Batalkan / refund",
       "schedule": "Jadwalkan",
       "pdf": "PDF",
@@ -676,8 +680,8 @@
       "diffWarn": "Nominal berbeda dari total ({total}). Selisih {diff}. Invoice tetap Menunggu verifikasi kecuali dicentang di bawah.",
       "mWaTitle": "Catat konfirmasi WhatsApp",
       "waAt": "Waktu konfirmasi",
-      "mReactTitle": "Aktifkan ulang invoice",
-      "reactDesc": "Nomor invoice tetap sama. Jatuh tempo baru = hari ini + {n} hari.",
+      "mReactTitle": "Terbitkan ulang invoice telat",
+      "reactDesc": "Nomor invoice tetap sama. Invoice diaktifkan kembali dengan jatuh tempo baru dan dikirim ulang ke peserta (email & WA).",
       "mCancelTitle": "Batalkan pendaftaran / refund",
       "cancelReason": "Alasan pembatalan",
       "refundAmount": "Nominal refund (Rp, 0 jika tidak ada)",
@@ -688,10 +692,17 @@
       "toastPartial": "Nominal dicatat · invoice tetap menunggu verifikasi (selisih)",
       "toastWa": "Konfirmasi WA dicatat",
       "toastResent": "Invoice dikirim ulang",
-      "toastReact": "Invoice diaktifkan ulang · jatuh tempo baru {date}",
+      "toastReact": "Invoice diterbitkan ulang · jatuh tempo baru {date}",
       "toastCancel": "Pendaftaran dibatalkan",
       "followText": "Halo {name}, kami dari BWI Aviation Sim Center. Invoice {no} sebesar {total} jatuh tempo {due}. Mohon konfirmasi pembayaran Anda. Terima kasih.",
-      "received": "diterima {amount}"
+      "received": "diterima {amount}",
+      "newDue": "Jatuh tempo baru",
+      "proofReq": "Bukti transfer (wajib, JPG/PNG/PDF)",
+      "proofHave": "Bukti transfer sudah ada dari konfirmasi WA — unggah baru bila ingin mengganti",
+      "saOnlyShort": "Khusus Super Admin",
+      "saOnlyLate": "Invoice lewat tempo/kedaluwarsa hanya bisa dilunasi atau diterbitkan ulang oleh Super Admin",
+      "lateOverdueNote": "Invoice ini sudah lewat jatuh tempo — pelunasan dicatat oleh Super Admin.",
+      "lateExpiredNote": "Invoice ini sudah kedaluwarsa — menandai lunas akan mengaktifkan kembali invoice & pendaftaran lalu langsung lunas."
     },
     "sched": {
       "eyebrow": "Atur sesi simulator",
@@ -1013,19 +1024,15 @@
   },
   "accountsDisplay": {
     "tab": "Layar TV",
-    "intro": "Link Mode Layar menampilkan jadwal simulator real-time di TV/monitor tanpa login. Siapa pun yang memegang link bisa melihatnya, jadi cabut link bila layar dipindah atau tidak dipakai.",
+    "intro": "Link Layar TV menampilkan jadwal simulator di TV/monitor tanpa login, lengkap dengan nama siswa, instruktur, dan paket. Siapa pun yang memegang link bisa melihatnya, jadi cabut link bila layar dipindah atau tidak dipakai.",
     "add": "Buat link layar",
     "mTitle": "Link layar baru",
     "label": "Nama layar / lokasi",
     "labelPh": "Mis. Lobi, Ruang ops, Ruang simulator",
-    "showNames": "Tampilkan nama peserta & instruktur",
-    "showNamesWarn": "Hanya untuk layar di ruang internal. Layar di area umum sebaiknya tanpa nama (data pribadi peserta, UU PDP).",
+    "showNamesWarn": "Layar menampilkan nama siswa, instruktur, dan paket — pasang di ruang internal, bukan area umum (data pribadi peserta).",
     "colLabel": "Layar",
-    "colMode": "Isi",
     "colCreated": "Dibuat",
     "colSeen": "Terakhir aktif",
-    "modeNames": "Dengan nama",
-    "modeAnon": "Tanpa nama",
     "never": "Belum dibuka",
     "copy": "Salin link",
     "open": "Buka",
@@ -1036,6 +1043,6 @@
     "empty": "Belum ada link layar.",
     "saOnly": "Hanya Super Admin yang bisa mengelola link layar.",
     "howTo": "Cara pasang: buka link di browser Chrome pada TV box / mini PC, tekan tombol Layar penuh. Layar tetap menyala dan jadwal diperbarui otomatis.",
-    "secretLink": "link rahasia (berisi nama)"
+    "secretLink": "link lama (kode panjang)"
   }
 }

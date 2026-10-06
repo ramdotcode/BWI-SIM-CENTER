@@ -8,10 +8,11 @@ export type DisplayCellStatus = "free" | "past" | "busy" | "live" | "done" | "no
 export type DisplayCell = { st: DisplayCellStatus; name?: string | null; instructor?: string | null; pkg?: string | null; reason?: string | null };
 
 /**
- * Data papan Mode Layar: hari ini + beberapa hari kerja berikutnya, per simulator × sesi.
+ * Data papan Mode Layar: hari ini + 3 hari kerja berikutnya, per simulator × sesi (masukan klien Okt 2026).
+ * Sejak Okt 2026 semua layar menampilkan nama siswa, instruktur & paket (opsi "tanpa nama" dihapus).
  * Nama peserta, instruktur, paket, dan alasan maintenance hanya dikirim bila link mengizinkan (show_names).
  */
-export async function displayBoard(showNames: boolean, upcoming = 5) {
+export async function displayBoard(showNames = true, upcoming = 3) {
   const s = await getSettings();
   const now = new Date();
   const today = todayJkt();
@@ -51,7 +52,7 @@ export async function displayBoard(showNames: boolean, upcoming = 5) {
     now: now.toISOString(),
     today,
     showNames,
-    sims: sims.map((x) => ({ code: x.code, name: x.name, bay: x.bay })),
+    sims: sims.map((x) => ({ code: x.code, name: x.name.replace(/\s*FTD\b/i, ""), bay: x.bay })),
     times,
     workDays: s.work_days,
     opsStart: s.ops_start,

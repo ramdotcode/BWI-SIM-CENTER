@@ -13,5 +13,5 @@ export const GET = handler(async (req: Request, { params }: { params: Promise<{ 
   if (!rl.ok) throw new HttpError(429, "Terlalu banyak permintaan");
   const link = await resolveDisplay((await params).token, true);
   if (!link) throw new HttpError(404, "Link layar tidak valid atau sudah dicabut");
-  return json(await displayBoard(link.show_names), { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
+  return json(await displayBoard(true), { headers: { "Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow" } });
 });

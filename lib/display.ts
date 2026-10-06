@@ -3,7 +3,7 @@ import { randomInt, randomUUID } from "node:crypto";
 import { db } from "./db";
 import type { AdminCtx } from "./auth";
 import { HttpError } from "./auth";
-import { decryptString, encryptString, hashToken, randomToken, safeEqual } from "./crypto";
+import { decryptString, encryptString, hashToken, safeEqual } from "./crypto";
 import { logActivity } from "./activity";
 import { appUrl } from "./tokens";
 
@@ -11,8 +11,8 @@ import { appUrl } from "./tokens";
  * Link "Mode Layar" (CR-01): papan jadwal real-time untuk TV/monitor, tanpa login.
  * Disimpan di tabel settings (key display_links) agar tidak menambah tabel/migrasi.
  * Token mentah hanya ada di URL; yang dicocokkan hash-nya. Salinan terenkripsi dipakai untuk "Salin link".
- * Link tanpa nama memakai kode pendek yang mudah diketik di TV ("lobi-7k2m") — isinya informasi publik (sama dengan
- * papan ketersediaan di halaman depan). Link dengan nama peserta tetap memakai token acak panjang.
+ * Semua link memakai kode pendek yang mudah diketik di TV ("lobi-7k2m"). Sejak Okt 2026 semua layar menampilkan
+ * nama siswa, instruktur & paket (keputusan klien) — cabut link bila layar dipindah/tidak dipakai.
  * Waktu terakhir aktif disimpan terpisah (display_seen) supaya polling layar tidak menimpa daftar link.
  */
 export type DisplayLink = { id: string; label: string; show_names: boolean; hash: string; enc: string; created_at: string; created_by: number };
@@ -41,11 +41,11 @@ function shortCode(label: string): string {
   return `${slug}-${Array.from({ length: 4 }, () => SHORT_ALPHABET[randomInt(SHORT_ALPHABET.length)]).join("")}`;
 }
 
-export async function createDisplayLink(admin: AdminCtx, input: { label: string; show_names: boolean }) {
+export async function createDisplayLink(admin: AdminCtx, input: { label: string }) {
   const existing = new Set((await listDisplayLinks()).map((x) => x.hash));
-  let raw = input.show_names ? randomToken(24) : shortCode(input.label);
+  let raw = shortCode(input.label);
   while (existing.has(hashToken(raw))) raw = shortCode(input.label);
-  const link: DisplayLink = { id: randomUUID().slice(0, 8), label: input.label.trim().slice(0, 60), show_names: input.show_names, hash: hashToken(raw), enc: encryptString(raw), created_at: new Date().toISOString(), created_by: admin.id };
+  const link: DisplayLink = { id: randomUUID().slice(0, 8), label: input.label.trim().slice(0, 60), show_names: true, hash: hashToken(raw), enc: encryptString(raw), created_at: new Date().toISOString(), created_by: admin.id };
   await save([...(await listDisplayLinks()), link]);
   await logActivity({ type: "ADMIN", id: admin.id }, "display.created", "display_link", link.id, { label: link.label, show_names: link.show_names });
   return { id: link.id, url: displayUrl(raw) };
@@ -59,9 +59,10 @@ export async function revokeDisplayLink(admin: AdminCtx, id: string) {
   await logActivity({ type: "ADMIN", id: admin.id }, "display.revoked", "display_link", id, { label: link.label });
 }
 
-/** Path yang ditampilkan di daftar admin: kode pendek terlihat; link dengan nama disamarkan. */
+/** Path yang ditampilkan di daftar admin (kode pendek); link lama bertoken panjang disamarkan. */
 export function displayPath(link: DisplayLink): string | null {
-  return link.show_names ? null : `/layar/${decryptString(link.enc)}`;
+  const raw = decryptString(link.enc);
+  return raw.length <= 30 ? `/layar/${raw}` : null;
 }
 
 export async function displayLinkUrl(id: string, locale: "id" | "en" = "id") {

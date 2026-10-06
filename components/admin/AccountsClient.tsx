@@ -83,7 +83,6 @@ export function DisplayLinks({ rows }: { rows: DisplayRow[] }) {
   const toast = useToast();
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState("");
-  const [names, setNames] = useState(false);
   const [busy, setBusy] = useState(false);
   const copy = async (url: string, msg: string) => {
     try {
@@ -108,17 +107,16 @@ export function DisplayLinks({ rows }: { rows: DisplayRow[] }) {
     <div className="stack" style={{ gap: 12 }}>
       <div className="row between wrap" style={{ padding: "12px 14px 0" }}>
         <p className="small muted" style={{ maxWidth: "70ch", margin: 0 }}>{t("intro")}</p>
-        <button className="btn sm" onClick={() => { setLabel(""); setNames(false); setOpen(true); }}>{t("add")}</button>
+        <button className="btn sm" onClick={() => { setLabel(""); setOpen(true); }}>{t("add")}</button>
       </div>
       <div className="tbl">
         <table>
-          <thead><tr><th>{t("colLabel")}</th><th>{t("colMode")}</th><th>{t("colCreated")}</th><th>{t("colSeen")}</th><th /></tr></thead>
+          <thead><tr><th>{t("colLabel")}</th><th>{t("colCreated")}</th><th>{t("colSeen")}</th><th /></tr></thead>
           <tbody>
-            {rows.length === 0 && <tr><td colSpan={5} className="muted small">{t("empty")}</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={4} className="muted small">{t("empty")}</td></tr>}
             {rows.map((r) => (
               <tr key={r.id}>
                 <td><b>{r.label}</b><div className="small mono muted">{r.path ?? t("secretLink")}</div></td>
-                <td><span className={`pill ${r.show_names ? "warn" : "neutral"}`}>{r.show_names ? t("modeNames") : t("modeAnon")}</span></td>
                 <td className="small">{r.created}</td>
                 <td className="small">{r.seen ?? <span className="faint">{t("never")}</span>}</td>
                 <td>
@@ -138,13 +136,10 @@ export function DisplayLinks({ rows }: { rows: DisplayRow[] }) {
         open={open}
         onClose={() => setOpen(false)}
         title={t("mTitle")}
-        footer={<><button className="btn ghost" onClick={() => setOpen(false)}>{tc("cancel")}</button><button className="btn" disabled={busy || !label.trim()} onClick={() => run(async () => { const r = await api<{ url: string }>("/api/admin/displays", { body: { label, show_names: names } }); setOpen(false); await copy(r.url, t("created")); })}>{t("add")}</button></>}
+        footer={<><button className="btn ghost" onClick={() => setOpen(false)}>{tc("cancel")}</button><button className="btn" disabled={busy || !label.trim()} onClick={() => run(async () => { const r = await api<{ url: string }>("/api/admin/displays", { body: { label } }); setOpen(false); await copy(r.url, t("created")); })}>{t("add")}</button></>}
       >
         <label className="field"><span className="flabel">{t("label")}</span><input className="in" value={label} maxLength={60} placeholder={t("labelPh")} onChange={(e) => setLabel(e.target.value)} /></label>
-        <label className="row" style={{ gap: 10, alignItems: "flex-start", cursor: "pointer" }}>
-          <input type="checkbox" checked={names} onChange={(e) => setNames(e.target.checked)} style={{ marginTop: 3 }} />
-          <span><b>{t("showNames")}</b><div className="small muted">{t("showNamesWarn")}</div></span>
-        </label>
+        <div className="small muted">{t("showNamesWarn")}</div>
       </Modal>
     </div>
   );
