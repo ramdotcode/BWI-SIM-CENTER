@@ -108,6 +108,10 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 ### Alternatif tanpa Vercel
 Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga didukung; di sana driver `local` (disk terenkripsi) boleh dipakai asal disk permanen & di-backup.
 
+## Perubahan CR-06 (6 Okt 2026): unduh data personal sebagai 1 PDF
+
+Tombol **⤓ PDF** (Super Admin) di samping **⤓ ZIP** — di halaman *Data personal* dan di kotak *Dokumen yang diunggah* pada drawer *Verifikasi pendaftar* (semua status). Hasil: satu PDF A4 = lembar data diri (pas foto, identitas, kontak, lisensi, ICAO, medical, riwayat pendaftaran, daftar lampiran) + semua dokumen terbaru sebagai lampiran (gambar 1 halaman penuh; PDF peserta digabung semua halamannya), tiap halaman berjudul "Lampiran n · jenis dokumen · No. REG" dan bernomor halaman. Dibuat saat diminta (`lib/pdf/participant.tsx`, `@react-pdf/renderer` + `pdf-lib`), **tidak disimpan** dan tanpa perubahan database; tercatat di log (`export.participant_pdf`). PDF peserta yang terkunci/rusak diganti halaman keterangan.
+
 ## Perubahan CR-05 (6 Okt 2026, masukan klien)
 
 | Masukan | Implementasi |

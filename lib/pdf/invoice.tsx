@@ -10,7 +10,7 @@ import { storage } from "../storage";
 const FONT_DIR = path.join(process.cwd(), "assets/fonts");
 const BRAND_DIR = path.join(process.cwd(), "public/brand");
 let fontsReady = false;
-function ensureFonts() {
+export function ensureFonts() {
   if (fontsReady) return;
   Font.register({
     family: "Barlow",

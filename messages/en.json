@@ -928,7 +928,7 @@
     },
     "people": {
       "title": "Participant Personal Data",
-      "callout": "One row = one person (all their registrations combined). The ⤓ ZIP button downloads one file with a personal data Excel (with photo) + registration history, and all latest documents (ID/passport, medical, licence, photo) per registration number. Every download is logged.",
+      "callout": "One row = one person (all their registrations combined). ⤓ ZIP = personal data Excel (with photo) + registration history + all original document files. ⤓ PDF = one PDF file with the personal data sheet followed by all documents merged as attachments. Every download is logged.",
       "searchPh": "Search name, email, NIK, passport…",
       "colName": "Participant",
       "colId": "Identity",
@@ -940,7 +940,9 @@
       "download": "⤓ ZIP",
       "downloadTitle": "Download personal data & documents (ZIP)",
       "expired": "expired",
-      "drawerBtn": "⤓ Personal data (ZIP)"
+      "drawerBtn": "⤓ Download all (ZIP)",
+      "downloadPdf": "⤓ PDF",
+      "downloadPdfTitle": "Download 1 PDF: personal data sheet + all documents merged"
     }
   },
   "email": {

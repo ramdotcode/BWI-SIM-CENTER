@@ -76,7 +76,12 @@ export default async function DataPersonal({ params, searchParams }: { params: P
                       </td>
                       <td>{last ? <><span className="mono">{last.reg_no}</span><div><span className={`pill ${REG_PILL[last.status]}`}>{te(`registrationStatus.${last.status}`)}</span></div></> : "—"}</td>
                       <td className="mono" style={{ textAlign: "center" }}>{p.registrations.length}</td>
-                      <td><a className="btn xs xls" href={`/api/admin/participants/${p.id}/export`} title={t("downloadTitle")} download>{t("download")}</a></td>
+                      <td>
+                        <div className="row" style={{ gap: 6, flexWrap: "nowrap" }}>
+                          <a className="btn xs xls" href={`/api/admin/participants/${p.id}/export`} title={t("downloadTitle")} download>{t("download")}</a>
+                          <a className="btn xs ghost" href={`/api/admin/participants/${p.id}/pdf`} title={t("downloadPdfTitle")} download>{t("downloadPdf")}</a>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}

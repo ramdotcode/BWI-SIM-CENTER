@@ -928,7 +928,7 @@
     },
     "people": {
       "title": "Data Personal Peserta",
-      "callout": "Satu baris = satu orang (gabungan semua pendaftarannya). Tombol ⤓ ZIP mengunduh 1 file berisi Excel data diri (dengan pas foto) + riwayat pendaftaran, dan semua dokumen terbaru (KTP/paspor, medical, lisensi, foto) per nomor pendaftaran. Setiap unduhan dicatat.",
+      "callout": "Satu baris = satu orang (gabungan semua pendaftarannya). ⤓ ZIP = Excel data diri (dengan pas foto) + riwayat pendaftaran + semua file dokumen asli. ⤓ PDF = satu file PDF berisi lembar data diri lalu semua dokumen digabung sebagai lampiran. Setiap unduhan dicatat.",
       "searchPh": "Cari nama, email, NIK, paspor…",
       "colName": "Peserta",
       "colId": "Identitas",
@@ -940,7 +940,9 @@
       "download": "⤓ ZIP",
       "downloadTitle": "Unduh data personal & dokumen (ZIP)",
       "expired": "lewat",
-      "drawerBtn": "⤓ Data personal (ZIP)"
+      "drawerBtn": "⤓ Unduh semua (ZIP)",
+      "downloadPdf": "⤓ PDF",
+      "downloadPdfTitle": "Unduh 1 PDF: lembar data diri + semua dokumen digabung"
     }
   },
   "email": {

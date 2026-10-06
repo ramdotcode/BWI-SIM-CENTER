@@ -121,10 +121,7 @@ export function VerifyDrawer() {
               <button className="btn ok" disabled={busy} aria-busy={busy} onClick={approve}>{t("approve")}</button>
             </>
           ) : d ? (
-            <>
-              {d.can_export && <a className="btn xls" href={`/api/admin/participants/${d.participant_id}/export`} download>{tp("drawerBtn")}</a>}
-              <button className="btn ghost" onClick={close}>{tc("close")}</button>
-            </>
+            <button className="btn ghost" onClick={close}>{tc("close")}</button>
           ) : null
         }
       >
@@ -142,7 +139,11 @@ export function VerifyDrawer() {
             <div className="card pad">
               <div className="row between" style={{ marginBottom: 10 }}>
                 <div className="eyebrow">{t("docsTitle")}</div>
-                <span className="small faint">{t("docAccessLogged")}</span>
+                <div className="row" style={{ gap: 10 }}>
+                  <span className="small faint">{t("docAccessLogged")}</span>
+                  {d.can_export && <a className="btn xs xls" href={`/api/admin/participants/${d.participant_id}/export`} download title={tp("downloadTitle")}>{tp("drawerBtn")}</a>}
+                  {d.can_export && <a className="btn xs ghost" href={`/api/admin/participants/${d.participant_id}/pdf`} download title={tp("downloadPdfTitle")}>{tp("downloadPdf")}</a>}
+                </div>
               </div>
               <div className="docgrid">
                 {current.map((doc) => (
