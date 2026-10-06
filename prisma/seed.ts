@@ -8,44 +8,13 @@ import { deriveSettings, isWorkDay, SETTING_DEFAULTS, slotsNeeded, slotStarts } 
 import { encryptString, hashToken, randomToken } from "../lib/crypto";
 import { addDays, dateOnly, todayJkt, wibInstant, ymd } from "../lib/format";
 import { storage } from "../lib/storage";
+import { PACKAGES } from "./packages";
 
 const db = new PrismaClient();
 const DEMO = process.env.SEED_DEMO !== "false";
 
 // Kata sandi awal admin (DUMMY, wajib diganti setelah login pertama di produksi).
 const SEED_PASSWORD = process.env.SEED_ADMIN_PASSWORD ?? "BwiSim-Dummy-2026!";
-
-const PACKAGES = [
-  {
-    code: "ppc", sort: 1, hours: 4, price: 12_000_000n, highlight: false,
-    name_id: "PPC – Pilot Proficiency Check", name_en: "PPC – Pilot Proficiency Check", short_id: "PPC", short_en: "PPC",
-    description_id: "Untuk perpanjangan/pemeriksaan kecakapan. 1 sesi × 4 jam, termasuk briefing & debriefing.",
-    description_en: "For proficiency renewal/check. 1 session × 4 h, including briefing & debriefing.",
-    bullets_id: ["1 sesi × 4 jam", "Briefing 30 mnt/sesi", "Instruktur type-rated", "Laporan sesi digital"],
-    bullets_en: ["1 session × 4 h", "30-min briefing per session", "Type-rated instructor", "Digital session report"],
-  },
-  {
-    code: "rec", sort: 2, hours: 8, price: 22_000_000n, highlight: true,
-    name_id: "Recurrent Training", name_en: "Recurrent Training", short_id: "Recurrent", short_en: "Recurrent",
-    description_id: "Penyegaran prosedur normal & abnormal.", description_en: "Refresher on normal & abnormal procedures.",
-    bullets_id: ["2 sesi × 4 jam", "Skenario abnormal/emergency", "LOFT 1 sesi", "Laporan sesi digital"],
-    bullets_en: ["2 sessions × 4 h", "Abnormal/emergency scenarios", "1 LOFT session", "Digital session report"],
-  },
-  {
-    code: "atpl", sort: 3, hours: 12, price: 32_000_000n, highlight: false,
-    name_id: "ATPL Skill Test Preparation", name_en: "ATPL Skill Test Preparation", short_id: "ATPL Prep", short_en: "ATPL Prep",
-    description_id: "Persiapan skill test ATPL / seleksi maskapai.", description_en: "Preparation for ATPL skill test / airline screening.",
-    bullets_id: ["3 sesi × 4 jam", "Profil ujian DGCA", "Mock check ride", "Debrief video"],
-    bullets_en: ["3 sessions × 4 h", "DGCA test profile", "Mock check ride", "Video debrief"],
-  },
-  {
-    code: "trf", sort: 4, hours: 20, price: 52_000_000n, highlight: false,
-    name_id: "Type Rating Familiarization", name_en: "Type Rating Familiarization", short_id: "TR Fam", short_en: "TR Fam",
-    description_id: "Pengenalan sistem & prosedur sebelum type rating.", description_en: "Systems & procedures introduction before type rating.",
-    bullets_id: ["5 sesi × 4 jam", "Ground briefing FCOM", "Normal procedures lengkap", "Sertifikat kehadiran"],
-    bullets_en: ["5 sessions × 4 h", "FCOM ground briefing", "Complete normal procedures", "Certificate of attendance"],
-  },
-];
 
 async function master() {
   for (const [key, value] of Object.entries(SETTING_DEFAULTS)) {
@@ -84,7 +53,7 @@ type P = {
 const PEOPLE: P[] = [
   { name: "Adi Nugraha Saputra", nik: "3171021204990003", email: "adi.nugraha@mail.com", wa: "+6281298765432", city: "Jakarta Selatan", prov: "DKI Jakarta", born: "1999-04-12", place: "Jakarta", g: "M", lic: "CPL", licNo: "CPL-2023-014872", hours: "312.5", org: "PPI Curug – Alumni 2023", pos: "FRESH_GRADUATE", med: "2027-03-31" },
   { name: "Dinda Larasati", nik: "3275014508980002", email: "dinda.l@mail.com", wa: "+6281522334455", city: "Bekasi", prov: "Jawa Barat", born: "1998-08-05", place: "Bekasi", g: "F", lic: "CPL", licNo: "CPL-2022-011203", hours: "540", org: "Ex-Susi Air", pos: "FO", med: "2027-01-12" },
-  { name: "Bagas Wicaksono", nik: "3374091201900001", email: "bagas.w@mail.com", wa: "+6281988776655", city: "Semarang", prov: "Jawa Tengah", born: "1990-01-12", place: "Semarang", g: "M", lic: "ATPL", licNo: "ATPL-2019-002211", hours: "4210", org: "Wings Air", pos: "CAPTAIN", med: "2026-09-30", tr: ["ATR72"] },
+  { name: "Bagas Wicaksono", nik: "3374091201900001", email: "bagas.w@mail.com", wa: "+6281988776655", city: "Semarang", prov: "Jawa Tengah", born: "1990-01-12", place: "Semarang", g: "M", lic: "ATPL", licNo: "ATPL-2019-002211", hours: "4210", org: "Wings Air", pos: "CAPTAIN", med: "2026-09-30", tr: ["ATR 72"] },
   { name: "Kevin Halim", nik: "3173052207970004", email: "kevin.h@mail.com", wa: "+6281766554433", city: "Jakarta Utara", prov: "DKI Jakarta", born: "1997-07-22", place: "Jakarta", g: "M", lic: "CPL", licNo: "CPL-2024-016690", hours: "256", org: "BIFA Bali", pos: "FRESH_GRADUATE", med: "2027-06-05", loc: "en" },
   { name: "Yoga Prasetyo", nik: "3273241509950002", email: "yoga.p@mail.com", wa: "+6282133445566", city: "Bandung", prov: "Jawa Barat", born: "1995-09-15", place: "Bandung", g: "M", lic: "CPL", licNo: "CPL-2020-008120", hours: "1120", org: "Freelance", pos: "FRESH_GRADUATE", med: "2027-02-15" },
   { name: "Sari Wulandari", nik: "3578011103960003", email: "sari.w@mail.com", wa: "+6281399887766", city: "Surabaya", prov: "Jawa Timur", born: "1996-03-11", place: "Surabaya", g: "F", lic: "CPL", licNo: "CPL-2021-009874", hours: "780.5", org: "Ex-Citilink cadet", pos: "FO", med: "2026-11-20" },
@@ -96,7 +65,7 @@ const PEOPLE: P[] = [
 const EXTRA_NAMES = ["Reza Firmansyah", "Andi Setiadi", "Nurul Hidayah", "Dimas Aryo", "Laras Putri", "Hafiz Maulana", "Citra Dewi", "Galih Pratama", "Intan Permata", "Joko Susilo", "Kurnia Sari", "Lutfi Hakim", "Mega Lestari", "Novan Saputra", "Oki Wijaya", "Prita Maharani", "Rangga Aditya", "Sinta Rahayu", "Taufik Hidayat", "Umar Said", "Vina Oktaviani", "Wahyu Nugroho", "Yuni Kartika", "Zaki Ramadhan"];
 
 async function placeholder(kind: DocumentKind, name: string) {
-  const label = { KTP: "KTP", MEDICAL: "MEDICAL CLASS 1", LICENCE_FRONT: "LICENCE · FRONT", LICENCE_RATING: "LICENCE · RATING", PHOTO: "PAS FOTO 4×6", PASSPORT: "PASSPORT" }[kind];
+  const label = { KTP: "KTP", MEDICAL: "MEDICAL CLASS 1", LICENCE_FRONT: "LICENCE · ALL PAGES", LICENCE_RATING: "LICENCE · RATING", PHOTO: "PAS FOTO 4×6", PASSPORT: "PASSPORT" }[kind];
   const bg = kind === "PHOTO" ? "#C7362F" : "#DCE7EA";
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="900" height="570"><rect width="100%" height="100%" rx="24" fill="${bg}"/><rect x="30" y="30" width="840" height="510" rx="18" fill="none" stroke="#0B3B48" stroke-width="4" stroke-dasharray="14 10"/><text x="60" y="110" font-family="Helvetica" font-size="44" font-weight="700" fill="#0B3B48">${label}</text><text x="60" y="180" font-family="Helvetica" font-size="32" fill="#16586A">${name}</text><text x="60" y="500" font-family="Helvetica" font-size="26" fill="#D4443C">DOKUMEN DUMMY — BUKAN DATA ASLI</text></svg>`;
   return sharp(Buffer.from(svg)).jpeg({ quality: 80 }).toBuffer();
@@ -133,9 +102,8 @@ async function demo() {
       data: {
         full_name: p.name, nik: p.nik, passport_no: null, birth_place: p.place, birth_date: dateOnly(p.born), gender: p.g, nationality: "ID",
         whatsapp: p.wa, email: p.email, address: `Jl. Contoh No. ${p.nik.slice(-2)} [DUMMY]`, city: p.city, province: p.prov, postal_code: "12730",
-        emergency_name: "Kontak Darurat [DUMMY]", emergency_relation: "PARENT", emergency_phone: "+6281311223344",
         licence_type: p.lic, licence_no: p.licNo, licence_authority: "DGCA", licence_issued_at: dateOnly("2022-08-15"), instrument_rating: "VALID",
-        type_ratings: p.tr ?? [], total_hours: p.hours, hours_on_type: p.tr?.length ? "1900" : "0", icao_english: "L4", organization: p.org, position: p.pos,
+        type_ratings: p.tr ?? [], total_hours: p.hours, hours_on_type: p.tr?.length ? "1900" : "0", icao_english: "L4", icao_valid_until: dateOnly("2028-12-31"), organization: p.org, position: p.pos,
         medical_class: "C1", medical_no: `MED-1-2026-${p.nik.slice(-5)}`, medical_valid_until: dateOnly(p.med), locale: p.loc ?? "id",
       },
     });
@@ -151,13 +119,13 @@ async function demo() {
     const reg = await db.registration.create({
       data: {
         reg_no, participant_id: part.id, simulator_id: sims[o.sim]!.id, package_id: pkg.id, hours_snapshot: pkg.hours, price_snapshot: pkg.price_idr, package_name_snapshot: pkg.name_id,
-        pref_date_from: o.pref ? dateOnly(o.pref[0]) : null, pref_date_to: o.pref ? dateOnly(o.pref[1]) : null, pref_time: o.prefTime ?? "MORNING", purpose: o.pkg === "ppc" ? "PPC" : o.pkg === "rec" ? "RECURRENT" : o.pkg === "atpl" ? "SKILL_TEST" : "FAMILIARIZATION",
+        pref_date_from: o.pref ? dateOnly(o.pref[0]) : null, pref_date_to: o.pref ? dateOnly(o.pref[1]) : null, pref_time: o.prefTime ?? "MORNING", purpose: o.pkg.startsWith("pc") ? "RECURRENT" : o.pkg.startsWith("atpl") ? "SKILL_TEST" : "FAMILIARIZATION",
         notes: o.notes ?? "[DUMMY] data contoh seed", status: o.status!, created_at: o.createdAt, verified_by: o.status === "PENDING_VERIFICATION" ? null : nadia,
         verified_at: o.status === "PENDING_VERIFICATION" ? null : new Date(o.createdAt.getTime() + 10 * 3600_000), schedule_sent_at: o.scheduleSent ? new Date(o.createdAt.getTime() + 30 * 3600_000) : null,
         rejection_note: o.reupload?.note ?? null, reupload_count: o.reupload ? 1 : 0,
       },
     });
-    for (const kind of ["KTP", "MEDICAL", "LICENCE_FRONT", "LICENCE_RATING", "PHOTO"] as DocumentKind[]) {
+    for (const kind of ["KTP", "MEDICAL", "LICENCE_FRONT", "PHOTO"] as DocumentKind[]) {
       const key = `documents/${reg.id}/${kind.toLowerCase()}-v1.jpg`;
       await storage.put(key, await placeholder(kind, o.p.name), "image/jpeg");
       const rejected = o.reupload?.kinds.includes(kind);
@@ -211,7 +179,7 @@ async function demo() {
 
   // Riwayat bulan-bulan sebelumnya (untuk rekap keuangan): pendaftaran selesai & lunas.
   const month = Number(today.slice(5, 7));
-  const pkgCycle = ["ppc", "rec", "ppc", "atpl", "rec", "trf", "ppc", "rec", "atpl", "ppc"];
+  const pkgCycle = ["pc", "pc-si", "pc", "atpl-course", "pc-si", "mcc", "pc", "pc-si", "atpl-course", "pc"];
   let e = 0;
   for (let m = 1; m < month; m++) {
     const perMonth = 3 + ((m * 7) % 4);
@@ -228,25 +196,25 @@ async function demo() {
   }
 
   // Putri — selesai bulan lalu
-  await makeReg({ p: PEOPLE[9]!, sim: "B737", pkg: "ppc", createdAt: ago(40), status: "COMPLETED", invoice: { status: "PAID", issued: ago(39), paid: ago(38) }, slots: [{ date: wd(addDays(today, -33)), start: S0, status: "COMPLETED" }], scheduleSent: true, opened: true });
+  await makeReg({ p: PEOPLE[9]!, sim: "B737", pkg: "pc", createdAt: ago(40), status: "COMPLETED", invoice: { status: "PAID", issued: ago(39), paid: ago(38) }, slots: [{ date: wd(addDays(today, -33)), start: S0, status: "COMPLETED" }], scheduleSent: true, opened: true });
   // Fajar — B737 Recurrent, 1 selesai + 1 mendatang, jadwal terkirim
-  await makeReg({ p: PEOPLE[7]!, sim: "B737", pkg: "rec", createdAt: ago(10), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(9), paid: ago(9, "15:00") }, slots: [{ date: wd(addDays(today, -2)), start: S1, status: "COMPLETED" }, { date: addDays(nextMon, 3), start: S1, status: "SCHEDULED" }], scheduleSent: true, opened: true });
+  await makeReg({ p: PEOPLE[7]!, sim: "B737", pkg: "pc-si", createdAt: ago(10), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(9), paid: ago(9, "15:00") }, slots: [{ date: wd(addDays(today, -2)), start: S1, status: "COMPLETED" }, { date: addDays(nextMon, 3), start: S1, status: "SCHEDULED" }], scheduleSent: true, opened: true });
   // Maya — B737 ATPL Prep, 3 sesi mendatang
-  await makeReg({ p: PEOPLE[8]!, sim: "B737", pkg: "atpl", createdAt: ago(11), status: "SCHEDULED", invoice: { status: "PAID", issued: ago(10), paid: ago(8) }, slots: [0, 1, 2].map((d) => ({ date: addDays(nextMon, d), start: S0, status: "SCHEDULED" as const })), scheduleSent: true, opened: true });
+  await makeReg({ p: PEOPLE[8]!, sim: "B737", pkg: "atpl-course", createdAt: ago(11), status: "SCHEDULED", invoice: { status: "PAID", issued: ago(10), paid: ago(8) }, slots: [0, 1, 2].map((d) => ({ date: addDays(nextMon, d), start: S0, status: "SCHEDULED" as const })), scheduleSent: true, opened: true });
   // Rizky — Recurrent A320, 1/2 selesai
-  await makeReg({ p: PEOPLE[6]!, sim: "A320", pkg: "rec", createdAt: ago(8), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(8, "15:00"), paid: ago(7) }, slots: [{ date: wd(addDays(today, -1)), start: S0, status: "COMPLETED" }], scheduleSent: true, opened: true });
+  await makeReg({ p: PEOPLE[6]!, sim: "A320", pkg: "pc-si", createdAt: ago(8), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(8, "15:00"), paid: ago(7) }, slots: [{ date: wd(addDays(today, -1)), start: S0, status: "COMPLETED" }], scheduleSent: true, opened: true });
   // Sari — A320 TR Fam 20 jam, 4/5 sesi
-  await makeReg({ p: PEOPLE[5]!, sim: "A320", pkg: "trf", createdAt: ago(4), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(4, "12:00"), paid: ago(4, "16:00") }, slots: [{ date: wd(addDays(today, -2)), start: S1, status: "COMPLETED" }, { date: wd(addDays(today, -1)), start: S1, status: "COMPLETED" }, { date: addDays(nextMon, 1), start: S0, status: "SCHEDULED" }, { date: addDays(nextMon, 3), start: S0, status: "SCHEDULED" }], scheduleSent: true, opened: true });
+  await makeReg({ p: PEOPLE[5]!, sim: "A320", pkg: "mcc", createdAt: ago(4), status: "IN_PROGRESS", invoice: { status: "PAID", issued: ago(4, "12:00"), paid: ago(4, "16:00") }, slots: [{ date: wd(addDays(today, -2)), start: S1, status: "COMPLETED" }, { date: wd(addDays(today, -1)), start: S1, status: "COMPLETED" }, { date: addDays(nextMon, 1), start: S0, status: "SCHEDULED" }, { date: addDays(nextMon, 3), start: S0, status: "SCHEDULED" }], scheduleSent: true, opened: true });
   // Yoga — invoice lewat tempo
-  await makeReg({ p: PEOPLE[4]!, sim: "A320", pkg: "rec", createdAt: ago(6), status: "PENDING_PAYMENT", invoice: { status: "OVERDUE", issued: ago(5), overdue: true } });
+  await makeReg({ p: PEOPLE[4]!, sim: "A320", pkg: "pc-si", createdAt: ago(6), status: "PENDING_PAYMENT", invoice: { status: "OVERDUE", issued: ago(5), overdue: true } });
   // Kevin — sudah konfirmasi WA, menunggu verifikasi bayar (EN)
-  await makeReg({ p: PEOPLE[3]!, sim: "B737", pkg: "ppc", createdAt: ago(3), status: "PENDING_PAYMENT", invoice: { status: "AWAITING_VERIFICATION", issued: ago(2), wa: ago(1, "16:40") }, pref: [addDays(today, 3), addDays(today, 20)] });
+  await makeReg({ p: PEOPLE[3]!, sim: "B737", pkg: "pc", createdAt: ago(3), status: "PENDING_PAYMENT", invoice: { status: "AWAITING_VERIFICATION", issued: ago(2), wa: ago(1, "16:40") }, pref: [addDays(today, 3), addDays(today, 20)] });
   // Bagas — dokumen ditolak (E-01), medical hampir habis (E-04)
-  await makeReg({ p: PEOPLE[2]!, sim: "A320", pkg: "rec", createdAt: ago(1, "07:52"), status: "REUPLOAD_REQUIRED", reupload: { kinds: ["LICENCE_RATING"], note: "Foto lisensi halaman rating buram, mohon unggah ulang." }, pref: [addDays(today, 2), addDays(today, 21)] });
+  await makeReg({ p: PEOPLE[2]!, sim: "A320", pkg: "pc-si", createdAt: ago(1, "07:52"), status: "REUPLOAD_REQUIRED", reupload: { kinds: ["LICENCE_FRONT"], note: "Halaman rating pada file lisensi buram, mohon unggah ulang." }, pref: [addDays(today, 2), addDays(today, 21)] });
   // Dinda — menunggu verifikasi
-  await makeReg({ p: PEOPLE[1]!, sim: "B737", pkg: "atpl", createdAt: ago(1, "01:10"), status: "PENDING_VERIFICATION", pref: [addDays(today, 5), addDays(today, 25)] });
+  await makeReg({ p: PEOPLE[1]!, sim: "B737", pkg: "atpl-course", createdAt: ago(1, "01:10"), status: "PENDING_VERIFICATION", pref: [addDays(today, 5), addDays(today, 25)] });
   // Adi — persona uji end-to-end (menunggu verifikasi)
-  await makeReg({ p: PEOPLE[0]!, sim: "A320", pkg: "ppc", createdAt: ago(2, "22:41"), status: "PENDING_VERIFICATION", pref: [addDays(today, 2), addDays(today, 20)], notes: "[DUMMY] Ada rencana seleksi maskapai minggu ketiga bulan depan, mohon slot secepatnya." });
+  await makeReg({ p: PEOPLE[0]!, sim: "A320", pkg: "pc", createdAt: ago(2, "22:41"), status: "PENDING_VERIFICATION", pref: [addDays(today, 2), addDays(today, 20)], notes: "[DUMMY] Ada rencana seleksi maskapai minggu ketiga bulan depan, mohon slot secepatnya." });
 
   // Terisi acak oleh peserta lain (tanpa pendaftaran nyata tidak diperbolehkan) → cukup dari data di atas.
   // Maintenance

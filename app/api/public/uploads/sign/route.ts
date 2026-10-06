@@ -4,12 +4,12 @@ import { body, handler, json } from "@/lib/api";
 import { HttpError } from "@/lib/auth";
 import { signPayload } from "@/lib/crypto";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
-import { DOC_KINDS } from "@/lib/schemas";
+import { ALL_DOC_KINDS } from "@/lib/schemas";
 import { MAX_UPLOAD_BYTES } from "@/lib/uploads";
 import { storage } from "@/lib/storage";
 
 const schema = z.object({
-  kind: z.enum([...DOC_KINDS, "PAYMENT_PROOF", "REFUND_PROOF", "SESSION_REPORT"]),
+  kind: z.enum([...ALL_DOC_KINDS, "PAYMENT_PROOF", "REFUND_PROOF", "SESSION_REPORT"]),
   name: z.string().min(1).max(200),
   size: z.number().int().positive().max(MAX_UPLOAD_BYTES, "Ukuran file melebihi 5 MB"),
   mime: z.string().max(100),

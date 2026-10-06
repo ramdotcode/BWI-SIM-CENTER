@@ -23,6 +23,8 @@ export type Col = { key: string; id: string; en: string; type: ColType; get: (r:
 
 const E = translator("id", "enums");
 const inv = (r: RegRow) => r.invoices.find((i) => i.status !== "CANCELLED") ?? r.invoices[0];
+/** Kode otoritas dikenal → label; isian "Lainnya" (teks bebas, CR-04) tampil apa adanya. */
+export const authorityLabel = (a: string) => (a === "DGCA" ? "DGCA" : ["FAA", "EASA", "CASA", "OTHER"].includes(a) ? E(`authority.${a}`) : a);
 const verifStatus = (r: RegRow) => (r.status === "PENDING_VERIFICATION" ? "Menunggu" : r.status === "REUPLOAD_REQUIRED" ? "Dok. kurang" : r.status === "CANCELLED" && !r.verified_at ? "Dibatalkan" : "Lolos");
 const linkStatus = (r: RegRow) => {
   const a = r.access_tokens.find((t) => !t.revoked_at);
@@ -36,6 +38,7 @@ export const COLUMNS: Col[] = [
   { key: "created_at", id: "Tgl daftar", en: "Registered", type: "date", get: (r) => new Date(r.created_at.getTime() + 7 * 3600_000) },
   // Langkah 1 — Data diri
   { key: "full_name", id: "Nama lengkap", en: "Full name", type: "text", get: (r) => r.participant.full_name },
+  { key: "id_type", id: "Identitas", en: "ID type", type: "text", get: (r) => (r.participant.nik ? "KTP" : "Paspor") },
   { key: "nik", id: "NIK", en: "NIK", type: "mono", get: (r) => r.participant.nik },
   { key: "passport_no", id: "Paspor", en: "Passport", type: "mono", get: (r) => r.participant.passport_no },
   { key: "birth_place", id: "Tempat lahir", en: "Place of birth", type: "text", get: (r) => r.participant.birth_place },
@@ -48,19 +51,17 @@ export const COLUMNS: Col[] = [
   { key: "city", id: "Kota", en: "City", type: "text", get: (r) => r.participant.city },
   { key: "province", id: "Provinsi", en: "Province", type: "text", get: (r) => r.participant.province },
   { key: "postal_code", id: "Kode pos", en: "Postal code", type: "mono", get: (r) => r.participant.postal_code },
-  { key: "emergency_name", id: "Kontak darurat", en: "Emergency contact", type: "text", get: (r) => r.participant.emergency_name },
-  { key: "emergency_relation", id: "Hub.", en: "Relation", type: "text", get: (r) => E(`relation.${r.participant.emergency_relation}`) },
-  { key: "emergency_phone", id: "Tel. darurat", en: "Emergency phone", type: "mono", get: (r) => prettyPhone(r.participant.emergency_phone) },
   // Langkah 2 — Lisensi & medical
   { key: "licence_type", id: "Jenis lisensi", en: "Licence type", type: "text", get: (r) => r.participant.licence_type },
   { key: "licence_no", id: "No. lisensi", en: "Licence no.", type: "mono", get: (r) => r.participant.licence_no },
-  { key: "licence_authority", id: "Penerbit", en: "Authority", type: "text", get: (r) => (r.participant.licence_authority === "DGCA" ? "DGCA" : E(`authority.${r.participant.licence_authority}`)) },
+  { key: "licence_authority", id: "Penerbit", en: "Authority", type: "text", get: (r) => authorityLabel(r.participant.licence_authority) },
   { key: "licence_issued_at", id: "Tgl terbit", en: "Issued", type: "date", get: (r) => r.participant.licence_issued_at },
   { key: "instrument_rating", id: "IR", en: "IR", type: "text", get: (r) => (r.participant.instrument_rating ? E(`instrumentRating.${r.participant.instrument_rating}`) : "") },
   { key: "type_ratings", id: "Type rating", en: "Type rating", type: "text", get: (r) => r.participant.type_ratings.join(", ") || "-" },
   { key: "total_hours", id: "Total jam", en: "Total hours", type: "number", get: (r) => Number(r.participant.total_hours) },
   { key: "hours_on_type", id: "Jam tipe", en: "Hours on type", type: "number", get: (r) => (r.participant.hours_on_type != null ? Number(r.participant.hours_on_type) : null) },
   { key: "icao_english", id: "ICAO Eng", en: "ICAO Eng", type: "text", get: (r) => r.participant.icao_english ?? "" },
+  { key: "icao_valid_until", id: "ICAO s/d", en: "ICAO until", type: "date", get: (r) => r.participant.icao_valid_until },
   { key: "organization", id: "Instansi", en: "Organization", type: "text", get: (r) => r.participant.organization },
   { key: "position", id: "Posisi", en: "Position", type: "text", get: (r) => (r.participant.position ? E(`position.${r.participant.position}`) : "") },
   { key: "medical_class", id: "Medical", en: "Medical", type: "text", get: (r) => E(`medicalClass.${r.participant.medical_class}`) },

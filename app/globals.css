@@ -444,3 +444,20 @@ th.sticky-col{background:var(--teal-tint);z-index:2}
 .disp-off{align-items:center;justify-content:center;text-align:center;gap:1em;padding:2em}
 .disp-off img{height:4em;width:auto} .disp-off h1{font-family:var(--display);font-size:2.4em;color:var(--teal-deep)} .disp-off p{color:var(--muted)}
 @media (orientation:portrait),(max-width:900px){.disp{font-size:clamp(13px,2.2vw,28px)}.disp .sims{grid-template-columns:1fr!important}.disp .dh{flex-wrap:wrap}.disp .next{overflow-x:auto}.disp .next table{min-width:44em}}
+
+@layer components {
+/* Kalender preferensi jadwal (form langkah 4, CR-04) */
+.pcal{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:18px}
+.pcal .mh{display:flex;align-items:center;justify-content:space-between;font-weight:600;margin-bottom:8px}
+.pcal .grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.pcal .dow{font-size:11px;color:var(--faint);text-align:center;padding:2px 0;font-weight:600}
+.pcal .d{border:1px solid transparent;border-radius:8px;background:#fff;min-height:42px;padding:3px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:inherit;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.pcal .d small{font-size:10px;line-height:1;color:var(--ok);font-weight:600}
+.pcal .d.free{border-color:var(--line)} .pcal .d.free:hover{border-color:var(--teal-mid)}
+.pcal .d.isfull{background:var(--bad-soft);color:var(--bad);cursor:not-allowed;text-decoration:line-through} .pcal .d.isfull small{color:var(--bad);text-decoration:none}
+.pcal .d.off{color:var(--faint);cursor:default;background:transparent}
+.pcal .d.in{background:var(--teal-tint);border-color:var(--teal-soft)}
+.pcal .d.edge{background:var(--teal);border-color:var(--teal);color:#fff} .pcal .d.edge small{color:var(--lime)}
+.pcal-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:10px}
+.pcal-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:5px;border:1px solid var(--line)}
+}

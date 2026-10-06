@@ -7,7 +7,7 @@ import { ymd } from "@/lib/format";
 
 /** Detail pendaftar untuk drawer verifikasi. URL dokumen lewat /api/admin/documents/:id (dicatat di log). */
 export const GET = handler(async (req: Request, { params }: { params: Promise<{ id: string }> }) => {
-  await requireAdminApi(req);
+  const a = await requireAdminApi(req);
   const id = Number((await params).id);
   const s = await getSettings();
   const r = await db.registration.findUnique({
@@ -29,7 +29,9 @@ export const GET = handler(async (req: Request, { params }: { params: Promise<{ 
     manual_threshold: s.reupload_manual_threshold,
     verifier: verifier?.name ?? null,
     verified_at: r.verified_at,
-    p: { ...r.participant, birth_date: ymd(r.participant.birth_date), licence_issued_at: ymd(r.participant.licence_issued_at), medical_valid_until: ymd(r.participant.medical_valid_until), total_hours: String(r.participant.total_hours), hours_on_type: r.participant.hours_on_type ? String(r.participant.hours_on_type) : null },
+    participant_id: r.participant_id,
+    can_export: a.role === "SUPER_ADMIN",
+    p: { ...r.participant, birth_date: ymd(r.participant.birth_date), licence_issued_at: ymd(r.participant.licence_issued_at), medical_valid_until: ymd(r.participant.medical_valid_until), icao_valid_until: r.participant.icao_valid_until ? ymd(r.participant.icao_valid_until) : null, total_hours: String(r.participant.total_hours), hours_on_type: r.participant.hours_on_type ? String(r.participant.hours_on_type) : null },
     sim: r.simulator.code,
     pkg: { name_id: r.package.name_id, name_en: r.package.name_en, short: r.package.short_id },
     hours: r.hours_snapshot,

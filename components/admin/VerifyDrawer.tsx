@@ -6,11 +6,13 @@ import { useRouter, usePathname } from "@/lib/i18n/navigation";
 import { Drawer, Lightbox } from "../Overlay";
 import { useToast } from "../Toast";
 import { api, fmtSize } from "../upload";
-import { fmtDate, fmtShortTs, prettyPhone, rupiah } from "@/lib/format";
+import { fmtDate, fmtShortTs, prettyPhone, rupiah, todayJkt } from "@/lib/format";
 import { REG_PILL } from "@/lib/ui";
 
+const KNOWN_AUTH = ["DGCA", "FAA", "EASA", "CASA", "OTHER"];
+
 type Detail = {
-  id: number; reg_no: string; status: string; created_at: string; reupload_count: number; rejection_note: string | null; manual_threshold: number; verifier: string | null; verified_at: string | null;
+  id: number; reg_no: string; status: string; created_at: string; participant_id: number; can_export: boolean; reupload_count: number; rejection_note: string | null; manual_threshold: number; verifier: string | null; verified_at: string | null;
   p: Record<string, string | null | string[]> & { full_name: string; email: string; whatsapp: string; medical_valid_until: string; type_ratings: string[] };
   sim: string; pkg: { name_id: string; name_en: string; short: string }; hours: number; price: number; invoice_total: number;
   pref: { from: string | null; to: string | null; time: string; purpose: string | null; notes: string | null };
@@ -27,6 +29,7 @@ export function VerifyDrawer() {
   const t = useTranslations("admin.verify");
   const te = useTranslations("enums");
   const tc = useTranslations("common");
+  const tp = useTranslations("admin.people");
   const l = useLocale() as "id" | "en";
   const toast = useToast();
   const [d, setD] = useState<Detail | null>(null);
@@ -56,6 +59,10 @@ export function VerifyDrawer() {
   const old = d?.documents.filter((x) => x.superseded) ?? [];
   const pending = d?.status === "PENDING_VERIFICATION";
   const medWarn = d && d.pref.to && d.p.medical_valid_until < d.pref.to;
+  const today = todayJkt();
+  const medExpired = !!d && d.p.medical_valid_until < today;
+  const icaoUntil = (d?.p.icao_valid_until as string | null) ?? null;
+  const icaoBad = !!icaoUntil && (icaoUntil < today || (!!d?.pref.to && icaoUntil < d.pref.to));
 
   async function approve() {
     if (!checks.every(Boolean)) return toast(t("needChecklist"));
@@ -114,7 +121,10 @@ export function VerifyDrawer() {
               <button className="btn ok" disabled={busy} aria-busy={busy} onClick={approve}>{t("approve")}</button>
             </>
           ) : d ? (
-            <button className="btn ghost" onClick={close}>{tc("close")}</button>
+            <>
+              {d.can_export && <a className="btn xls" href={`/api/admin/participants/${d.participant_id}/export`} download>{tp("drawerBtn")}</a>}
+              <button className="btn ghost" onClick={close}>{tc("close")}</button>
+            </>
           ) : null
         }
       >
@@ -138,7 +148,7 @@ export function VerifyDrawer() {
                 {current.map((doc) => (
                   <div key={doc.id} className={`doc ${doc.review === "REJECTED" ? "rej" : ""}`}>
                     <div className="img" onClick={() => setZoom({ src: doc.url, mime: doc.mime })} role="button" tabIndex={0} aria-label={t("zoom")}>
-                      <span className="kind">{doc.kind.replace("LICENCE_", "LIC ")}</span>
+                      <span className="kind">{doc.kind === "LICENCE_FRONT" ? "LICENCE" : doc.kind.replace("LICENCE_", "LIC ")}</span>
                       {doc.mime === "application/pdf" ? (
                         <span>📄 PDF</span>
                       ) : (
@@ -172,7 +182,7 @@ export function VerifyDrawer() {
                   [t("nameOnForm"), d.p.full_name],
                   [l === "id" ? "Jenis lisensi" : "Licence type", d.p.licence_type as string],
                   [t("number"), <span className="mono" key="n">{d.p.licence_no}</span>],
-                  [t("issuer"), d.p.licence_authority ? te(`authority.${d.p.licence_authority}` as "authority.DGCA") : ""],
+                  [t("issuer"), d.p.licence_authority ? (KNOWN_AUTH.includes(d.p.licence_authority as string) ? te(`authority.${d.p.licence_authority}` as "authority.DGCA") : (d.p.licence_authority as string)) : ""],
                   [t("issuedAt"), fmtDate(d.p.licence_issued_at as string, l)],
                   [t("ir"), d.p.instrument_rating ? te(`instrumentRating.${d.p.instrument_rating}` as "instrumentRating.VALID") : ""],
                   ["Type rating", (d.p.type_ratings ?? []).join(", ")],
@@ -183,8 +193,9 @@ export function VerifyDrawer() {
                 <div className="eyebrow" style={{ marginBottom: 10 }}>{t("medTitle")}</div>
                 {kv([
                   ["Medical", <>{te(`medicalClass.${d.p.medical_class}` as "medicalClass.C1")} · <span className="mono">{d.p.medical_no}</span></>],
-                  [t("validUntil"), <span key="m" style={{ color: medWarn ? "var(--bad)" : "var(--ok)" }}>{fmtDate(d.p.medical_valid_until, l)} {medWarn ? "⚠" : "✓"}</span>],
-                  ["NIK", <span className="mono" key="nik">{d.p.nik}</span>],
+                  [t("validUntil"), <span key="m" style={{ color: medWarn || medExpired ? "var(--bad)" : "var(--ok)" }}>{fmtDate(d.p.medical_valid_until, l)} {medWarn || medExpired ? "⚠" : "✓"}</span>],
+                  ["ICAO English", d.p.icao_english ? <span key="i" style={icaoBad ? { color: "var(--bad)" } : undefined}>{te(`icao.${d.p.icao_english}` as "icao.L4")}{icaoUntil ? ` · ${fmtDate(icaoUntil, l)}` : ""}{icaoBad ? " ⚠" : ""}</span> : ""],
+                  d.p.nik ? ["NIK", <span className="mono" key="nik">{d.p.nik}</span>] : [te("docKind.PASSPORT"), <span className="mono" key="nik">{d.p.passport_no}</span>],
                   [t("born"), `${d.p.birth_place}, ${fmtDate(d.p.birth_date as string, l)}`],
                   ["WA", <span className="mono" key="wa">{prettyPhone(d.p.whatsapp)}</span>],
                   ["Email", d.p.email],

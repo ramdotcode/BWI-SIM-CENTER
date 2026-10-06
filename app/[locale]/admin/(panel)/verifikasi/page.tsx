@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { getSettings } from "@/lib/settings";
 import { fmtDate, fmtShortTs, prettyPhone } from "@/lib/format";
 import { REG_PILL } from "@/lib/ui";
-import { REQUIRED_DOCS } from "@/lib/schemas";
+import { docProgress } from "@/lib/schemas";
 import { FilterSelect, SearchBox } from "@/components/admin/FilterBar";
 import { VerifyDrawer } from "@/components/admin/VerifyDrawer";
 
@@ -60,7 +60,7 @@ export default async function Verifikasi({ params, searchParams }: { params: Pro
                 {rows.map((r) => {
                   const p = r.participant;
                   const medBad = r.pref_date_to ? p.medical_valid_until < r.pref_date_to : false;
-                  const nReq = r.documents.filter((d) => (REQUIRED_DOCS as readonly string[]).includes(d.kind) && d.review !== "REJECTED").length;
+                  const dp = docProgress(r.documents.filter((d) => !d.superseded && d.review !== "REJECTED").map((d) => d.kind));
                   const pending = r.status === "PENDING_VERIFICATION";
                   const q2 = new URLSearchParams(Object.entries(sp).filter(([, v]) => v) as [string, string][]);
                   q2.set("reg", String(r.id));
@@ -70,7 +70,7 @@ export default async function Verifikasi({ params, searchParams }: { params: Pro
                       <td><b>{p.full_name}</b><div className="small muted">{p.email} · {prettyPhone(p.whatsapp)}</div></td>
                       <td>{p.licence_type}<div className="small muted mono">{p.licence_no}</div></td>
                       <td>{te(`medicalClass.${p.medical_class}`)}<div className="small muted" style={medBad ? { color: "var(--bad)" } : undefined}>{t("medUntil", { date: fmtDate(p.medical_valid_until, l) })}{medBad ? " ⚠" : ""}</div></td>
-                      <td className="mono">{nReq}/{REQUIRED_DOCS.length}</td>
+                      <td className="mono">{dp.n}/{dp.total}</td>
                       <td><span className={`chip ${r.simulator.code.toLowerCase()}`}>{r.simulator.code}</span> {r.package.short_id} {r.hours_snapshot}{l === "id" ? "j" : "h"}</td>
                       <td className="small">{fmtShortTs(r.created_at, l)}</td>
                       <td>

@@ -202,7 +202,7 @@ model AdminUser {
 model Participant {
   id                  Int               @id @default(autoincrement())
   full_name           String
-  nik                 String            @unique @db.Char(16)
+  nik                 String?           @unique @db.Char(16) // kosong bila identitas = paspor (WNA)
   passport_no         String?
   birth_place         String
   birth_date          DateTime          @db.Date
@@ -214,9 +214,9 @@ model Participant {
   city                String
   province            String
   postal_code         String?
-  emergency_name      String
-  emergency_relation  String
-  emergency_phone     String
+  emergency_name      String? // tidak dipakai lagi di form (CR-04, Okt 2026)
+  emergency_relation  String? // tidak dipakai lagi di form (CR-04, Okt 2026)
+  emergency_phone     String? // tidak dipakai lagi di form (CR-04, Okt 2026)
   licence_type        LicenceType
   licence_no          String
   licence_authority   String
@@ -226,6 +226,7 @@ model Participant {
   total_hours         Decimal           @db.Decimal(7, 1)
   hours_on_type       Decimal?          @db.Decimal(7, 1)
   icao_english        IcaoLevel?
+  icao_valid_until    DateTime?         @db.Date
   organization        String?
   position            String?
   medical_class       MedicalClass

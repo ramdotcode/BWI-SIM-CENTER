@@ -52,12 +52,12 @@ function layout(s: Settings, l: Loc, body: string) {
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#fff;border:1px solid ${C.line};border-radius:12px">
 <tr><td style="padding:24px 28px 0">
   <table role="presentation" width="100%" style="border-bottom:2px solid ${C.lime}"><tr>
-    <td style="padding-bottom:14px"><img src="cid:bwi-logo" alt="BWI Aviation" height="34" style="height:34px;vertical-align:middle"> <img src="cid:ppi-logo" alt="PPI Curug" height="30" style="height:30px;vertical-align:middle;margin-left:10px"></td>
-    <td align="right" style="padding-bottom:14px;font-size:12.5px;color:${C.muted}">Sim Center · PPI Curug</td>
+    <td style="padding-bottom:14px"><img src="cid:bwi-logo" alt="BWI Aviation" height="34" style="height:34px;vertical-align:middle"></td>
+    <td align="right" style="padding-bottom:14px;font-size:12.5px;color:${C.muted}">Sim Center</td>
   </tr></table>
 </td></tr>
 <tr><td style="padding:20px 28px 8px">${body}</td></tr>
-<tr><td style="padding:8px 28px 24px"><div style="font-size:12.5px;color:${C.faint};border-top:1px solid #E8EEF0;padding-top:14px">${footer}<br>${e(s.company_name)} · Kawasan PPI Curug, Tangerang, Banten.</div></td></tr>
+<tr><td style="padding:8px 28px 24px"><div style="font-size:12.5px;color:${C.faint};border-top:1px solid #E8EEF0;padding-top:14px">${footer}<br>${e(s.company_name)} · ${e(s.company_address)}</div></td></tr>
 </table></td></tr></table></body></html>`;
 }
 const p = (html: string) => `<p style="margin:0 0 14px">${html}</p>`;
@@ -136,7 +136,7 @@ export function render(name: TemplateName, ctx: RegCtx, s: Settings, l: Loc, x: 
         p(`${id ? "Halo" : "Hello"} <b>${e(P.full_name)}</b>,`) +
         p(
           id
-            ? `Pendaftaran sesi simulator Anda sudah kami terima dengan nomor ${mono(ctx.reg_no)}. Admin akan memeriksa foto lisensi, medical, dan KTP Anda dalam <b>1 hari kerja</b>. Setelah lolos, invoice dikirim ke email ini.`
+            ? `Pendaftaran sesi simulator Anda sudah kami terima dengan nomor ${mono(ctx.reg_no)}. Admin akan memeriksa foto lisensi, medical, dan KTP/paspor Anda dalam <b>1 hari kerja</b>. Setelah lolos, invoice dikirim ke email ini.`
             : `We have received your simulator session registration, number ${mono(ctx.reg_no)}. Admin will check your licence, medical, and ID photos within <b>1 working day</b>. Once approved, the invoice is sent to this email.`,
         ) +
         box([
@@ -299,7 +299,7 @@ export function render(name: TemplateName, ctx: RegCtx, s: Settings, l: Loc, x: 
     case "session_reminder": {
       const when = x.when === "H-0" ? (id ? "hari ini" : "today") : id ? "besok" : "tomorrow";
       const wa = id
-        ? `Pengingat BWI Sim Center: sesi ${ctx.simulator.code} Anda ${when}, ${x.slotLabel}. Hadir 30 menit sebelumnya untuk briefing; bawa lisensi asli, medical, dan KTP. Lokasi: ${s.location_name}.`
+        ? `Pengingat BWI Sim Center: sesi ${ctx.simulator.code} Anda ${when}, ${x.slotLabel}. Hadir 30 menit sebelumnya untuk briefing; bawa lisensi asli, medical, dan KTP/paspor. Lokasi: ${s.location_name}.`
         : `BWI Sim Center reminder: your ${ctx.simulator.code} session is ${when}, ${x.slotLabel}. Arrive 30 minutes early for briefing; bring your original licence, medical, and ID. Location: ${s.location_name}.`;
       return { subject: "", html: "", text: wa, wa, dashboard: id ? `Pengingat: sesi ${when} ${x.slotLabel}` : `Reminder: session ${when} ${x.slotLabel}` };
     }

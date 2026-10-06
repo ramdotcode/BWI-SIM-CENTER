@@ -63,7 +63,7 @@ export default async function InvoicePage({ params }: { params: Promise<{ locale
           <div>
             <div className="k">{t("billedTo")}</div>
             <div className="v">{p.full_name}</div>
-            <div className="v l">NIK {p.nik}<br />{p.address}, {p.city} {p.postal_code}<br />{p.email} · {prettyPhone(p.whatsapp)}</div>
+            <div className="v l">{p.nik ? `NIK ${p.nik}` : `${l === "id" ? "Paspor" : "Passport"} ${p.passport_no ?? ""}`}<br />{p.address}, {p.city} {p.postal_code}<br />{p.email} · {prettyPhone(p.whatsapp)}</div>
           </div>
           <div>
             <div className="k">{t("issued")}</div><div className="v">{fmtTsDate(inv.issued_at, l)}</div>

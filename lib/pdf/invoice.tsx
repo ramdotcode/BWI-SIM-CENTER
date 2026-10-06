@@ -43,7 +43,6 @@ const st = StyleSheet.create({
   page: { fontFamily: "Barlow", fontSize: 10, color: C.ink, padding: 40, paddingBottom: 50 },
   top: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   logo: { height: 38, width: 62 },
-  ppi: { height: 32, width: 36, marginLeft: 10 },
   small: { fontSize: 9, color: C.muted, lineHeight: 1.4 },
   h: { fontFamily: "BarlowCondensed", fontWeight: 700, fontSize: 30, color: C.deep, textAlign: "right", letterSpacing: 1 },
   mono: { fontFamily: "PlexMono" },
@@ -85,8 +84,8 @@ function T(l: "id" | "en") {
     confirmD: id ? "Kirim bukti transfer + nomor invoice. Verifikasi manual oleh admin pada jam kerja." : "Send the transfer receipt + invoice number. Verified manually by admin during office hours.",
     terms: (h: number) =>
       id
-        ? `Sesi dijadwalkan setelah pembayaran terverifikasi. Pembatalan ≤ ${h} jam sebelum sesi tidak dapat dikembalikan. Kerja sama PT BWI Aviation × Politeknik Penerbangan Indonesia Curug.`
-        : `Sessions are scheduled after payment is verified. Cancellations ≤ ${h} hours before a session are non-refundable. A partnership of PT BWI Aviation × Politeknik Penerbangan Indonesia Curug.`,
+        ? `Sesi dijadwalkan setelah pembayaran terverifikasi. Pembatalan ≤ ${h} jam sebelum sesi tidak dapat dikembalikan.`
+        : `Sessions are scheduled after payment is verified. Cancellations ≤ ${h} hours before a session are non-refundable.`,
     paid: (d: string, by: string) => (id ? `Dibayar ${d}${by}` : `Paid ${d}${by}`),
     refund: (a: string, d: string) => (id ? `Refund ${a} · ${d}` : `Refund ${a} · ${d}`),
     stamp: { PAID: id ? "Lunas" : "Paid", CANCELLED: id ? "Dibatalkan" : "Cancelled", EXPIRED: id ? "Kedaluwarsa" : "Expired", other: id ? "Belum dibayar" : "Unpaid" },
@@ -111,8 +110,6 @@ function InvoiceDoc({ inv, s, l }: { inv: Inv; s: Settings; l: "id" | "en" }) {
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               {/* eslint-disable-next-line jsx-a11y/alt-text -- react-pdf Image tidak memiliki prop alt */}
               <Image src={path.join(BRAND_DIR, "bwi-aviation.png")} style={st.logo} />
-              {/* eslint-disable-next-line jsx-a11y/alt-text */}
-              <Image src={path.join(BRAND_DIR, "ppi-curug.png")} style={st.ppi} />
             </View>
             <Text style={[st.small, { marginTop: 8 }]}>{s.company_name}</Text>
             <Text style={st.small}>{s.company_address}</Text>
@@ -131,7 +128,7 @@ function InvoiceDoc({ inv, s, l }: { inv: Inv; s: Settings; l: "id" | "en" }) {
           <View style={{ flex: 1.3, paddingRight: 12 }}>
             <Text style={st.k}>{t.billed}</Text>
             <Text style={st.v}>{p.full_name}</Text>
-            <Text style={st.small}>NIK {p.nik}</Text>
+            <Text style={st.small}>{p.nik ? `NIK ${p.nik}` : `${l === "id" ? "Paspor" : "Passport"} ${p.passport_no ?? ""}`}</Text>
             <Text style={st.small}>
               {p.address}, {p.city} {p.postal_code ?? ""}
             </Text>

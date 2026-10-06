@@ -108,6 +108,24 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 ### Alternatif tanpa Vercel
 Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga didukung; di sana driver `local` (disk terenkripsi) boleh dipakai asal disk permanen & di-backup.
 
+## Perubahan CR-04 (6 Okt 2026, masukan klien)
+
+| Masukan | Implementasi |
+|---|---|
+| Kontak darurat tidak perlu | Dihapus dari form, Excel, prefill. Kolom DB dibiarkan (nullable). |
+| KTP atau paspor | Pilihan "Jenis identitas": KTP → NIK wajib (paspor opsional); Paspor → no. paspor wajib, NIK kosong. Dokumen identitas wajib mengikuti pilihan. Peserta lama dicocokkan via NIK, atau no. paspor bila tanpa NIK. |
+| "Lainnya" = teks bebas | Kewarganegaraan, otoritas penerbit lisensi, type rating "Lainnya" → isian teks; nilai teks disimpan apa adanya. |
+| Type rating A320 / B737 / Lainnya | Pilihan ATR 72 & "Belum ada" dihapus (kosong = belum ada). |
+| Validity ILP seperti medical; validity lewat tidak bisa lanjut | Kolom baru `icao_valid_until` (wajib untuk Level 4/5, opsional Level 6). Medical/ILP yang sudah lewat **hari ini** memblokir langkah 2 (juga dicek server). Habis sebelum akhir preferensi jadwal → peringatan saja. |
+| Lisensi langsung semua halaman | Satu unggahan "Lisensi (semua halaman)" (`LICENCE_FRONT`, disarankan 1 PDF ≤ 5 MB). `LICENCE_RATING` hanya untuk pendaftaran lama. |
+| Pilihan simulator tanpa penjelasan | Teks deskripsi A320/B737 dihapus. |
+| Sesuaikan paket (PC biasa & stand in) | 6 paket flyer 2026 di `prisma/packages.ts`; **jam simulator masih DUMMY**. Database berjalan: `npx tsx scripts/update-packages-2026.ts` (paket lama dinonaktifkan). |
+| Invoice BWI saja, tanpa logo Curug | Logo & kalimat kerja sama Curug dihapus dari PDF invoice dan header email. Alamat di invoice = setting "Alamat perusahaan". |
+| Preferensi tanggal sesuai yang sudah dibooking | Kalender ketersediaan per simulator (`/api/public/availability/days`): tanggal penuh & hari libur tidak bisa dipilih, tampil sisa sesi per hari. |
+| Data personal + download per orang | Menu SA **Data personal** (`/admin/data-personal`) + tombol di drawer verifikasi: ZIP berisi Excel data diri (pas foto ditempel, riwayat pendaftaran, daftar dokumen) + semua dokumen terbaru per No. Reg. Unduhan dicatat (`export.participant_zip`). |
+
+Juga diperbaiki: pilihan opsional (IR, ICAO, posisi, tujuan sesi) yang dibiarkan kosong sebelumnya ikut dianggap "Wajib diisi".
+
 ## Mode Layar (papan jadwal TV, CR-01)
 
 Halaman `/layar/{token}` menampilkan jadwal simulator real-time untuk TV/monitor **tanpa login** (hari ini besar per simulator × sesi + 4 hari kerja berikutnya, jam WIB, tombol layar penuh, layar dijaga tetap menyala, ukuran huruf menyesuaikan layar).
@@ -142,12 +160,13 @@ Dummy lain: rekening BCA 123-456-7890 a.n. PT BWI Aviation Indonesia, WA admin 0
 1. **Auth admin** memakai JWT `jose` + bcrypt buatan sendiri, bukan Auth.js — cukup untuk 2 peran credentials, lebih sedikit dependensi. Akun nonaktif langsung kehilangan akses (dicek ke DB tiap request).
 2. **Unggah dokumen**: "URL bertanda tangan" mengarah ke endpoint server sendiri (`/api/public/uploads/put`, berlaku 10 menit), bukan langsung ke bucket, agar server bisa **mime sniffing, batas 5 MB, dan strip EXIF** sebelum menyimpan.
 3. **Template email** berupa fungsi TypeScript (HTML inline-style), bukan React Email/MJML.
-4. **Sheet Excel "Peserta" berisi 47 kolom**, bukan 42 seperti mockup: sesuai prinsip "field formulir = kolom Excel", ikut disertakan 5 field preferensi jadwal. Kolom bisa disembunyikan di halaman Database.
+4. **Sheet Excel "Peserta" berisi 46 kolom**, bukan 42 seperti mockup: sesuai prinsip "field formulir = kolom Excel", ikut disertakan 5 field preferensi jadwal (sejak CR-04: tanpa 3 kolom kontak darurat, tambah "Identitas" & "ICAO s/d"). Kolom bisa disembunyikan di halaman Database.
 5. **Job kedaluwarsa** mengikuti spec (UNPAID/AWAITING lewat tempo → OVERDUE), tetapi invoice yang **sudah punya konfirmasi WA/bukti** tidak otomatis dijadikan EXPIRED — diputuskan admin.
 6. **Notifikasi** dikirim setelah respons (`after()` Next.js) agar aksi admin tidak menunggu render PDF/SMTP; setiap kiriman tetap dicatat di `notifications`.
 7. Peserta lama (E-08): prefill data diri & lisensi setelah OTP email; **dokumen selalu wajib diunggah baru** per pendaftaran.
 8. **Isian "Balai kesehatan penerbangan" (`medical_center`) dihapus dari form & Excel** (1 Okt 2026, masukan penguji: membingungkan, opsional). Kolom database `participants.medical_center` sengaja dibiarkan (nullable, tidak dipakai) agar tidak perlu migrasi.
 9. **Pembaruan "real-time" diganti ambil ulang berkala (default 15 menit)** (2 Okt 2026, keputusan user: paket gratis; 2 sesi/hari tidak butuh pembaruan per detik). Spec meminta SSE + fallback polling; SSE tetap tersedia lewat `NEXT_PUBLIC_REALTIME_MODE=sse`. Label "LIVE" diganti "Update otomatis". Mode Layar juga mengambil ulang tepat di jam mulai/selesai sesi & tengah malam.
+10. **CR-04 (6 Okt 2026, masukan klien)** — lihat bagian "Perubahan CR-04" di bawah. Kolom `participants.emergency_*` dibiarkan (nullable, tidak dipakai); `nik` boleh kosong untuk pemegang paspor.
 
 ## Belum dikerjakan / fase berikutnya
 

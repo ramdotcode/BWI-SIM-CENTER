@@ -10,12 +10,12 @@ import { dateOnly, normalizePhone, todayJkt } from "../format";
 import { notify } from "../notify";
 import { publish } from "../realtime";
 import { assertReg } from "../state-machine";
-import { REQUIRED_DOCS, type RegistrationInput } from "../schemas";
+import { requiredDocs, resolveOther, type RegistrationInput } from "../schemas";
 import { issueInvoice } from "./invoices";
 import { releaseFutureSlots } from "./slots";
 import { translator } from "../i18n/server";
 
-/** Langkah 2–3 alur: form publik → participant (upsert by NIK) + REG + dokumen + token + notifikasi. */
+/** Langkah 2–3 alur: form publik → participant (upsert by NIK, atau no. paspor bila identitas = paspor) + REG + dokumen + token + notifikasi. */
 export async function submitRegistration(input: RegistrationInput) {
   const pkg = await db.package.findFirst({ where: { code: input.package, active: true } });
   const sim = await db.simulator.findFirst({ where: { code: input.simulator, active: true } });
@@ -28,7 +28,12 @@ export async function submitRegistration(input: RegistrationInput) {
     const u = byId.get(uid);
     if (!u || u.kind !== kind) throw new HttpError(422, `Dokumen ${kind} tidak valid atau sudah dipakai, unggah ulang`, "bad_upload");
   }
-  if (!REQUIRED_DOCS.every((k) => input.documents[k])) throw new HttpError(422, "Dokumen wajib belum lengkap", "missing_docs");
+  if (!requiredDocs(input.id_type).every((k) => input.documents[k])) throw new HttpError(422, "Dokumen wajib belum lengkap", "missing_docs");
+  const today = todayJkt();
+  if (input.medical_valid_until < today) throw new HttpError(422, "Medical sudah tidak berlaku", "medical_expired");
+  if (input.icao_valid_until && input.icao_english !== "NONE" && input.icao_valid_until < today) throw new HttpError(422, "ICAO English Proficiency sudah tidak berlaku", "icao_expired");
+  const other = resolveOther(input);
+  const nik = input.id_type === "KTP" ? input.nik! : null;
 
   const pdata = {
     full_name: input.full_name,
@@ -36,25 +41,23 @@ export async function submitRegistration(input: RegistrationInput) {
     birth_place: input.birth_place,
     birth_date: dateOnly(input.birth_date),
     gender: input.gender,
-    nationality: input.nationality,
+    nationality: other.nationality,
     whatsapp: normalizePhone(input.whatsapp),
     email: input.email,
     address: input.address,
     city: input.city,
     province: input.province,
     postal_code: input.postal_code ?? null,
-    emergency_name: input.emergency_name,
-    emergency_relation: input.emergency_relation,
-    emergency_phone: normalizePhone(input.emergency_phone),
     licence_type: input.licence_type,
     licence_no: input.licence_no,
-    licence_authority: input.licence_authority,
+    licence_authority: other.licence_authority,
     licence_issued_at: dateOnly(input.licence_issued_at),
     instrument_rating: input.instrument_rating ?? null,
-    type_ratings: input.type_ratings.filter((t) => t !== "NONE"),
+    type_ratings: other.type_ratings,
     total_hours: input.total_hours.replace(",", "."),
     hours_on_type: input.hours_on_type ? input.hours_on_type.replace(",", ".") : null,
     icao_english: input.icao_english ?? null,
+    icao_valid_until: input.icao_valid_until && input.icao_english && input.icao_english !== "NONE" ? dateOnly(input.icao_valid_until) : null,
     organization: input.organization ?? null,
     position: input.position ?? null,
     medical_class: input.medical_class,
@@ -65,10 +68,12 @@ export async function submitRegistration(input: RegistrationInput) {
 
   const year = Number(todayJkt().slice(0, 4));
   const result = await db.$transaction(async (tx) => {
-    const existing = await tx.participant.findUnique({ where: { nik: input.nik } });
+    const existing = nik
+      ? await tx.participant.findUnique({ where: { nik } })
+      : await tx.participant.findFirst({ where: { nik: null, passport_no: { equals: input.passport_no!, mode: "insensitive" } }, orderBy: { updated_at: "desc" } });
     const participant = existing
       ? await tx.participant.update({ where: { id: existing.id }, data: pdata })
-      : await tx.participant.create({ data: { ...pdata, nik: input.nik } });
+      : await tx.participant.create({ data: { ...pdata, nik } });
     const reg_no = await nextRegNo(tx, year);
     const reg = await tx.registration.create({
       data: {

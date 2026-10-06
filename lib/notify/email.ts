@@ -17,7 +17,6 @@ export type MailAttachment = { filename: string; content: Buffer | string; conte
 
 export const BRAND_ATTACHMENTS: MailAttachment[] = [
   { filename: "bwi-aviation.png", content: path.join(process.cwd(), "public/brand/bwi-aviation.png") as unknown as string, cid: "bwi-logo" },
-  { filename: "ppi-curug.png", content: path.join(process.cwd(), "public/brand/ppi-curug.png") as unknown as string, cid: "ppi-logo" },
 ];
 
 export async function sendMail(opts: { from: string; to: string | string[]; subject: string; html: string; text?: string; attachments?: MailAttachment[] }) {

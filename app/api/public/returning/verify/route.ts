@@ -6,6 +6,7 @@ import { sha256, safeEqual } from "@/lib/crypto";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { prettyPhone, ymd } from "@/lib/format";
 import { logActivity } from "@/lib/activity";
+import { splitOther } from "@/lib/schemas";
 
 /** Verifikasi OTP → kembalikan data diri & lisensi terakhir (tanpa dokumen: dokumen wajib diunggah baru). */
 export const POST = handler(async (req: Request) => {
@@ -24,12 +25,12 @@ export const POST = handler(async (req: Request) => {
   return json({
     history: p.registrations,
     data: {
-      full_name: p.full_name, nik: p.nik, passport_no: p.passport_no ?? "", birth_place: p.birth_place, birth_date: ymd(p.birth_date), gender: p.gender, nationality: p.nationality,
+      ...splitOther(p),
+      full_name: p.full_name, id_type: p.nik ? "KTP" : "PASSPORT", nik: p.nik ?? "", passport_no: p.passport_no ?? "", birth_place: p.birth_place, birth_date: ymd(p.birth_date), gender: p.gender,
       whatsapp: prettyPhone(p.whatsapp), email: p.email, address: p.address, city: p.city, province: p.province, postal_code: p.postal_code ?? "",
-      emergency_name: p.emergency_name, emergency_relation: p.emergency_relation, emergency_phone: prettyPhone(p.emergency_phone),
-      licence_type: p.licence_type, licence_no: p.licence_no, licence_authority: p.licence_authority, licence_issued_at: ymd(p.licence_issued_at),
-      instrument_rating: p.instrument_rating ?? "", type_ratings: p.type_ratings, total_hours: String(p.total_hours), hours_on_type: p.hours_on_type ? String(p.hours_on_type) : "",
-      icao_english: p.icao_english ?? "", organization: p.organization ?? "", position: p.position ?? "", medical_class: p.medical_class, medical_no: p.medical_no,
+      licence_type: p.licence_type, licence_no: p.licence_no, licence_issued_at: ymd(p.licence_issued_at),
+      instrument_rating: p.instrument_rating ?? "", total_hours: String(p.total_hours), hours_on_type: p.hours_on_type ? String(p.hours_on_type) : "",
+      icao_english: p.icao_english ?? "", icao_valid_until: p.icao_valid_until ? ymd(p.icao_valid_until) : "", organization: p.organization ?? "", position: p.position ?? "", medical_class: p.medical_class, medical_no: p.medical_no,
       medical_valid_until: ymd(p.medical_valid_until),
     },
   });

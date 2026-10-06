@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "../db";
 import { getSettings, isWorkDay, slotStarts } from "../settings";
-import { dateOnly, todayJkt } from "../format";
+import { addDays, dateOnly, todayJkt, ymd } from "../format";
 import { ensureSlots, isPast } from "./slots";
 import { viewStatus, type ViewStatus } from "../slot-view";
 
@@ -31,3 +31,27 @@ export type TodayBoard = Awaited<ReturnType<typeof todayBoard>>;
 export async function activePackages() {
   return db.package.findMany({ where: { active: true }, orderBy: { sort: "asc" } });
 }
+
+/**
+ * Ketersediaan per tanggal untuk kalender preferensi di form (CR-04): besok s/d horizon slot.
+ * Tanpa nama/detail — hanya jumlah sesi yang masih kosong per hari kerja.
+ */
+export async function availabilityDays(simCode: string) {
+  const s = await getSettings();
+  const from = addDays(todayJkt(), 1);
+  const to = addDays(todayJkt(), s.slot_horizon_days);
+  const sim = await db.simulator.findFirst({ where: { code: simCode, active: true } });
+  const starts = slotStarts(s).map((x) => x.start);
+  const taken = sim
+    ? await db.slot.groupBy({
+        by: ["date"],
+        where: { simulator_id: sim.id, date: { gte: dateOnly(from), lte: dateOnly(to) }, start_time: { in: starts }, status: { not: "AVAILABLE" } },
+        _count: { _all: true },
+      })
+    : [];
+  const takenBy = new Map(taken.map((x) => [ymd(x.date), x._count._all]));
+  const days: Record<string, number> = {};
+  for (let d = from; d <= to; d = addDays(d, 1)) if (isWorkDay(s, d)) days[d] = Math.max(0, starts.length - (takenBy.get(d) ?? 0));
+  return { from, to, perDay: starts.length, days };
+}
+export type AvailabilityDays = Awaited<ReturnType<typeof availabilityDays>>;

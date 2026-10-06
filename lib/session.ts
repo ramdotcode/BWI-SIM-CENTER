@@ -28,4 +28,4 @@ export async function verifySession(token: string | undefined): Promise<SessionP
 }
 
 /** Rute admin yang hanya untuk SUPER_ADMIN */
-export const SA_ONLY_SEGMENTS = ["keuangan", "database", "pengaturan"];
+export const SA_ONLY_SEGMENTS = ["keuangan", "database", "data-personal", "pengaturan"];

@@ -86,7 +86,7 @@
     "docKind": {
       "KTP": "ID card (KTP) photo",
       "MEDICAL": "Medical certificate",
-      "LICENCE_FRONT": "Licence — front page",
+      "LICENCE_FRONT": "Licence (all pages)",
       "LICENCE_RATING": "Licence — rating page",
       "PHOTO": "4×6 photo, red background",
       "PASSPORT": "Passport"
@@ -163,7 +163,7 @@
     },
     "typeRating": {
       "A320": "A320",
-      "B737NG": "B737NG",
+      "B737NG": "B737",
       "ATR72": "ATR 72",
       "OTHER": "Other",
       "NONE": "None yet"
@@ -269,7 +269,6 @@
     "clearDraft": "Clear draft",
     "secIdentity": "Identity",
     "secContact": "Contact & address",
-    "secEmergency": "Emergency contact",
     "secLicence": "Pilot licence",
     "secMedical": "Medical certificate",
     "full_name": "Full name (as on licence/ID)",
@@ -288,9 +287,6 @@
     "city": "City / Regency",
     "province": "Province",
     "postal_code": "Postal code",
-    "emergency_name": "Name",
-    "emergency_relation": "Relationship",
-    "emergency_phone": "Phone number",
     "licence_type": "Licence type",
     "licence_no": "Licence number",
     "licence_authority": "Issuing authority",
@@ -314,10 +310,9 @@
     "docsHint": "— JPG/PNG/PDF, max 5 MB per file",
     "docKTP": "For identity verification",
     "docMEDICAL": "The page showing class & validity",
-    "docLICENCE_FRONT": "Licence identity page",
-    "docLICENCE_RATING": "Rating / endorsement page",
+    "docLICENCE_FRONT": "All licence pages including ratings & endorsements — preferably combined into 1 PDF (max 5 MB)",
     "docPHOTO": "For licence/rating application",
-    "docPASSPORT": "If you want it included in the application",
+    "docPASSPORT": "Passport identity page (photo & personal data)",
     "chooseFile": "Choose file",
     "replaceFile": "Replace",
     "uploading": "Uploading…",
@@ -325,12 +320,10 @@
     "uploadFailed": "Upload failed",
     "docsCallout": "Photos must be clearly legible, without glare, with all edges of the document visible. Admin verifies manually from these photos.",
     "secSim": "Simulator",
-    "simA320Desc": "Fly-by-wire, sidestick, FMGS. Suited for PPC & Airbus type rating preparation.",
-    "simB737Desc": "Conventional yoke, FMC, autothrottle. For PPC & Boeing type rating preparation.",
     "secPkg": "Package",
     "pkgMeta": "{h} h · {s} sessions × {slot} h",
     "secPref": "Schedule preference",
-    "secPrefHint": "— final schedule is set by admin",
+    "secPrefHint": "— pick a date range on the calendar; full dates cannot be selected. Final schedule is set by admin",
     "pref_date_from": "Earliest date",
     "pref_date_to": "Latest date",
     "pref_time": "Preferred time",
@@ -358,6 +351,27 @@
     "returningSent": "If the email is registered, a verification code has been sent (valid for 10 minutes).",
     "returningDone": "Previous data loaded. Please review & upload your latest documents.",
     "returningBad": "Code is wrong or expired.",
+    "id_type": "Identity document",
+    "idTypeKTP": "KTP (Indonesian ID)",
+    "idTypePASSPORT": "Passport",
+    "nationality_other": "Nationality (type in)",
+    "licence_authority_other": "Issuing authority (type in)",
+    "type_rating_other": "Other type ratings",
+    "typeRatingOtherHint": "Type the aircraft types, separated by commas.",
+    "icao_valid_until": "ICAO English valid until",
+    "icaoL6Hint": "Level 6 is usually valid for life — leave empty if there is no expiry date.",
+    "validityHint": "Expired certificates cannot be registered.",
+    "icaoWarn": "Note: your ICAO English Proficiency is valid until {date}, before the end of your preferred schedule range. Sessions after that date cannot be scheduled until the certificate is renewed.",
+    "calLoading": "Loading schedule availability…",
+    "calFailed": "Could not load schedule availability. Reload the page to try again.",
+    "calFree": "{n} sessions still available",
+    "calFull": "Full — all sessions are booked",
+    "calFullShort": "Full",
+    "calLegendFree": "Available (free/sessions per day)",
+    "calLegendFull": "Full",
+    "calLegendPicked": "Your choice",
+    "calPickEnd": "click the end date",
+    "calClear": "Clear selection",
     "errors": {
       "required": "Required",
       "nik": "NIK must be 16 digits",
@@ -368,7 +382,9 @@
       "range": "End date must be after start date",
       "documents": "Upload all required documents",
       "agree": "Tick the declaration to continue",
-      "generic": "Invalid value"
+      "generic": "Invalid value",
+      "expired": "Expired — please renew the certificate first",
+      "past": "Choose a start date from tomorrow"
     }
   },
   "submitted": {
@@ -514,6 +530,7 @@
       "accounts": "Account management",
       "finance": "Financial summary",
       "db": "Database & Excel",
+      "people": "Personal data",
       "settings": "Settings"
     },
     "login": {
@@ -899,6 +916,22 @@
       "otpNote": "Not implemented yet (phase 7, if Q8 = yes).",
       "sessionsNote": "Format HH:MM-HH:MM, comma-separated. All sessions must be the same length; 1 session = 1 slot. Future empty slots that no longer match are removed; booked slots are kept.",
       "workDaysNote": "Block public holidays manually via Block maintenance in the schedule."
+    },
+    "people": {
+      "title": "Participant Personal Data",
+      "callout": "One row = one person (all their registrations combined). The ⤓ ZIP button downloads one file with a personal data Excel (with photo) + registration history, and all latest documents (ID/passport, medical, licence, photo) per registration number. Every download is logged.",
+      "searchPh": "Search name, email, NIK, passport…",
+      "colName": "Participant",
+      "colId": "Identity",
+      "colLicence": "Licence",
+      "colMedical": "Medical until",
+      "colIcao": "ICAO English",
+      "colLast": "Latest registration",
+      "colCount": "Regs",
+      "download": "⤓ ZIP",
+      "downloadTitle": "Download personal data & documents (ZIP)",
+      "expired": "expired",
+      "drawerBtn": "⤓ Personal data (ZIP)"
     }
   },
   "email": {
