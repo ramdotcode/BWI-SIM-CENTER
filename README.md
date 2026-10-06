@@ -165,7 +165,7 @@ Semua tersimpan di tabel `settings` dan bisa diubah di Admin → Pengaturan.
 | Q6 | `refund_policy` | `PER_CASE` | Refund pembatalan setelah lunas? |
 | Q7 | `wa_mode` | `MANUAL_PREFILL` | WA otomatis (API) atau manual? |
 | Q8 | `dashboard_otp` | false | OTP saat buka link pertama? (**belum diimplementasikan**) |
-| Q9 | `domain`, `sender_email_*` | bwi-sim.id, billing@/schedule@bwiaviation.id | Domain & email pengirim riil? |
+| Q9 | `APP_URL` (env), `sender_email_*` | bwi-sim.vercel.app, billing@/schedule@bwi.ramcode.site | Domain & email pengirim riil? (setting `domain` dihapus 6 Okt 2026 — teks link pendek & UID kalender memakai host dari `APP_URL`) |
 | Q10 | `default_locale` | id | Bahasa default publik? |
 | Q11 | `session_report_enabled` | true | Laporan sesi PDF ke peserta? (unggah manual oleh admin) |
 | Q12 | kolom form | sesuai spec bagian 7 | Field tambahan untuk pengajuan lisensi DGCA? |

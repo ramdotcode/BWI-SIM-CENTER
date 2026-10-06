@@ -18,7 +18,6 @@ export const SETTING_DEFAULTS = {
   refund_policy: "PER_CASE" as "PER_CASE" | "FULL" | "NONE", // Q6
   wa_mode: "MANUAL_PREFILL" as "MANUAL_PREFILL" | "API", // Q7
   dashboard_otp: false, // Q8
-  domain: "bwi-sim.vercel.app", // Q9 — tampilan link pendek di email/WA; ganti saat domain final
   sender_email_billing: "billing@bwiaviation.id", // Q9
   sender_email_schedule: "schedule@bwiaviation.id", // Q9
   sender_name: "BWI Aviation Sim Center",
@@ -48,10 +47,10 @@ export type SettingKey = keyof typeof SETTING_DEFAULTS;
 export type Settings = typeof SETTING_DEFAULTS & { slot_minutes: number; ops_start: string; ops_end: string };
 
 /** Label & tipe untuk halaman Pengaturan (SA). `q` = nomor pertanyaan client. */
-export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boolean" | "time" | "enum" | "list" | "sessions" | "days"; group: string; q?: string; options?: string[]; hidden?: boolean }> = {
+export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boolean" | "time" | "enum" | "list" | "sessions" | "days"; group: string; q?: string; options?: string[]; hidden?: boolean; advanced?: boolean }> = {
   session_times: { type: "sessions", group: "ops" }, // Q1 dijawab klien 1 Okt 2026
   work_days: { type: "days", group: "ops" },
-  slot_horizon_days: { type: "number", group: "ops" },
+  slot_horizon_days: { type: "number", group: "ops", advanced: true },
   show_instructor_to_participant: { type: "boolean", group: "ops", q: "Q2" },
   reschedule_free_hours: { type: "number", group: "ops", q: "Q5" },
   no_show_policy: { type: "enum", group: "ops", q: "Q5", options: ["HOURS_FORFEITED", "HOURS_RETURNED"] },
@@ -59,6 +58,7 @@ export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boo
   invoice_due_days: { type: "number", group: "billing", q: "Q3" },
   invoice_expire_days: { type: "number", group: "billing", q: "Q3" },
   vat_percent: { type: "number", group: "billing", q: "Q4" },
+  // advanced: setting teknis → bagian "Lanjutan" (tertutup) di Pengaturan.
   // hidden: belum berpengaruh di aplikasi → disembunyikan dari Pengaturan (6 Okt 2026), nilai default tetap.
   refund_policy: { type: "enum", group: "billing", q: "Q6", options: ["PER_CASE", "FULL", "NONE"], hidden: true },
   bank_name: { type: "string", group: "billing" },
@@ -70,19 +70,18 @@ export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boo
   wa_mode: { type: "enum", group: "notify", q: "Q7", options: ["MANUAL_PREFILL", "API"], hidden: true },
   wa_admin_number: { type: "string", group: "notify" },
   sender_name: { type: "string", group: "notify" },
-  sender_email_billing: { type: "string", group: "notify", q: "Q9" },
-  sender_email_schedule: { type: "string", group: "notify", q: "Q9" },
+  sender_email_billing: { type: "string", group: "notify", q: "Q9", advanced: true },
+  sender_email_schedule: { type: "string", group: "notify", q: "Q9", advanced: true },
   admin_notify_emails: { type: "list", group: "notify" },
   office_hours: { type: "string", group: "notify" },
   location_name: { type: "string", group: "notify" },
   dashboard_otp: { type: "boolean", group: "access", q: "Q8", hidden: true },
-  send_link_on_paid: { type: "boolean", group: "access" },
-  token_inactive_after_days: { type: "number", group: "access" },
+  send_link_on_paid: { type: "boolean", group: "access", advanced: true },
+  token_inactive_after_days: { type: "number", group: "access", advanced: true },
   reupload_token_days: { type: "number", group: "access" },
-  reupload_manual_threshold: { type: "number", group: "access" },
+  reupload_manual_threshold: { type: "number", group: "access", advanced: true },
   document_retention_days: { type: "number", group: "access" },
   upload_max_mb: { type: "number", group: "access" },
-  domain: { type: "string", group: "general", q: "Q9" },
   default_locale: { type: "enum", group: "general", q: "Q10", options: ["id", "en"], hidden: true },
 };
 

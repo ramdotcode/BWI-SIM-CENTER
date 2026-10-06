@@ -2,6 +2,7 @@ import "server-only";
 import type { Settings } from "../settings";
 import { fmtDate, fmtDateLong, fmtDateTime, fmtTime, fmtTsDate, prettyPhone, rupiah } from "../format";
 import { waLink } from "./wa";
+import { appHost } from "../tokens";
 import type { RegCtx } from "./context";
 
 export type Loc = "id" | "en";
@@ -277,7 +278,7 @@ export function render(name: TemplateName, ctx: RegCtx, s: Settings, l: Loc, x: 
             [id ? "Lokasi" : "Location", e(s.location_name)],
             [id ? "Hadir" : "Arrive", id ? "30 menit sebelum sesi (briefing)" : "30 minutes before the session (briefing)"],
             [id ? "Bawa" : "Bring", id ? "Lisensi asli, medical, KTP" : "Original licence, medical, ID"],
-            [id ? "Link dashboard pribadi" : "Private dashboard link", `<span style="${MONO};font-size:12px">${e(shortDisplay(x.dashboardLink, s))}</span><div style="font-size:12px;color:${C.muted};font-weight:400">${id ? "Tanpa login. Jangan bagikan link ini." : "No login. Do not share this link."}</div>`],
+            [id ? "Link dashboard pribadi" : "Private dashboard link", `<span style="${MONO};font-size:12px">${e(shortDisplay(x.dashboardLink))}</span><div style="font-size:12px;color:${C.muted};font-weight:400">${id ? "Tanpa login. Jangan bagikan link ini." : "No login. Do not share this link."}</div>`],
           ],
         ) +
         p(`<span style="font-size:13px;color:${C.muted}">${id ? "Ingin melihat slot secara real-time atau memantau perubahan jadwal? Buka dashboard peserta Anda:" : "Want to see slots in real time or track schedule changes? Open your participant dashboard:"}</span>`) +
@@ -332,10 +333,10 @@ export function render(name: TemplateName, ctx: RegCtx, s: Settings, l: Loc, x: 
   }
 }
 
-function shortDisplay(link: string | undefined, s: Settings) {
+function shortDisplay(link: string | undefined) {
   if (!link) return "—";
   const m = link.match(/\/d\/(REG-\d{4}-\d{4})-(.{4})/);
-  return m ? `${s.domain}/d/${m[1]}-${m[2]}…` : link;
+  return m ? `${appHost()}/d/${m[1]}-${m[2]}…` : link;
 }
 
 /** Email OTP (E-08 peserta lama). */

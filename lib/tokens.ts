@@ -54,8 +54,11 @@ export function appUrl(path: string, locale: "id" | "en" = "id") {
 }
 export const dashboardUrl = (raw: string, locale: "id" | "en" = "id") => appUrl(`/d/${raw}`, locale);
 export const reuploadUrl = (raw: string, locale: "id" | "en" = "id") => appUrl(`/unggah-ulang/${raw}`, locale);
-/** Tampilan pendek: bwi-sim.id/d/REG-2026-0912-k7x2… */
-export function shortLink(raw: string, domain: string) {
-  const m = raw.match(/^(REG-\d{4}-\d{4})-(.{4})/);
-  return `${domain}/d/${m ? `${m[1]}-${m[2]}…` : raw.slice(0, 16) + "…"}`;
+/** Host aplikasi dari env APP_URL (mis. "bwi-sim.vercel.app") — untuk tampilan link pendek & UID kalender. */
+export function appHost(): string {
+  try {
+    return new URL(process.env.APP_URL ?? "http://localhost:3100").host;
+  } catch {
+    return "localhost";
+  }
 }

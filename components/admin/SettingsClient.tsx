@@ -7,7 +7,7 @@ import { useToast } from "../Toast";
 import { api } from "../upload";
 import { dayShort, rupiah } from "@/lib/format";
 
-type Meta = { type: string; group: string; q?: string; options?: string[]; hidden?: boolean };
+type Meta = { type: string; group: string; q?: string; options?: string[]; hidden?: boolean; advanced?: boolean };
 
 export function SettingsForm({ values, meta }: { values: Record<string, unknown>; meta: Record<string, Meta> }) {
   const t = useTranslations("admin.settings");
@@ -17,7 +17,10 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
   const router = useRouter();
   const [v, setV] = useState<Record<string, unknown>>(values);
   const [busy, setBusy] = useState(false);
-  const groups = ["ops", "billing", "notify", "access", "general"];
+  const GROUPS = ["ops", "billing", "notify", "access", "general"];
+  const shown = (m: Meta, adv: boolean) => !m.hidden && !!m.advanced === adv;
+  // Kelompok tanpa isi yang tampil (mis. "Umum") tidak ditampilkan.
+  const groupsFor = (adv: boolean) => GROUPS.filter((g) => Object.values(meta).some((m) => m.group === g && shown(m, adv)));
   const save = async () => {
     setBusy(true);
     try {
@@ -31,25 +34,44 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
   };
   return (
     <div className="stack" style={{ gap: 16 }}>
-      <div className="callout">{t("qNote")}</div>
-      {groups.map((g) => (
+      {groupsFor(false).map((g) => (
         <div key={g} className="card pad">
           <div className="sect" style={{ marginBottom: 12 }}>{t(`groups.${g}` as "groups.ops")}</div>
+          {fields(g, false)}
+        </div>
+      ))}
+      <details className="card pad">
+        <summary style={{ cursor: "pointer", fontWeight: 600 }}>{t("advanced")} <span className="small muted" style={{ fontWeight: 400 }}>— {t("advancedHint")}</span></summary>
+        {groupsFor(true).map((g) => (
+          <div key={g} style={{ marginTop: 14 }}>
+            <div className="sect" style={{ marginBottom: 12 }}>{t(`groups.${g}` as "groups.ops")}</div>
+            {fields(g, true)}
+          </div>
+        ))}
+      </details>
+      <div className="row" style={{ justifyContent: "flex-end" }}>
+        <button className="btn" disabled={busy} onClick={save}>{tc("save")}</button>
+      </div>
+    </div>
+  );
+
+  function fields(g: string, adv: boolean) {
+    return (
           <div className="fgrid">
             {Object.entries(meta)
-              .filter(([, m]) => m.group === g && !m.hidden)
+              .filter(([, m]) => m.group === g && shown(m, adv))
               .map(([k, m]) => {
                 const Field = m.type === "days" ? "div" : "label"; // tombol di dalam <label> ikut terpicu saat label diklik
                 return (
                 <Field className="field" key={k}>
                   <span className="flabel">
-                    {t(`keys.${k}` as "keys.session_times")} {m.q && <span className="pill warn xs" title={t("pending")}>{m.q}</span>}
+                    {t(`keys.${k}` as "keys.session_times")}
                   </span>
                   {m.type === "boolean" ? (
                     <button type="button" className={`switch ${v[k] ? "on" : ""}`} aria-pressed={!!v[k]} onClick={() => setV({ ...v, [k]: !v[k] })} />
                   ) : m.type === "enum" ? (
                     <select className="in" value={String(v[k])} onChange={(e) => setV({ ...v, [k]: e.target.value })}>
-                      {m.options!.map((o) => <option key={o} value={o}>{o}</option>)}
+                      {m.options!.map((o) => <option key={o} value={o}>{t.has(`opt.${o}` as "opt.HOURS_FORFEITED") ? t(`opt.${o}` as "opt.HOURS_FORFEITED") : o}</option>)}
                     </select>
                   ) : m.type === "days" ? (
                     <div className="chips" role="group">
@@ -70,20 +92,13 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
                   ) : (
                     <input className={`in ${m.type === "number" || m.type === "time" ? "mono" : ""}`} type={m.type === "time" ? "time" : "text"} inputMode={m.type === "number" ? "numeric" : undefined} value={String(v[k] ?? "")} onChange={(e) => setV({ ...v, [k]: m.type === "number" ? e.target.value.replace(/[^\d.]/g, "") : e.target.value })} />
                   )}
-                  {k === "dashboard_otp" && <span className="hint">{t("otpNote")}</span>}
-                  {k === "session_times" && <span className="hint">{t("sessionsNote")}</span>}
-                  {k === "work_days" && <span className="hint">{t("workDaysNote")}</span>}
+                  {t.has(`hints.${k}` as "hints.session_times") && <span className="hint">{t(`hints.${k}` as "hints.session_times")}</span>}
                 </Field>
                 );
               })}
           </div>
-        </div>
-      ))}
-      <div className="row" style={{ justifyContent: "flex-end" }}>
-        <button className="btn" disabled={busy} onClick={save}>{tc("save")}</button>
-      </div>
-    </div>
-  );
+    );
+  }
 }
 
 type Pkg = { id?: number; code: string; name_id: string; name_en: string; short_id: string; short_en: string; hours: number; price_idr: number; description_id: string; description_en: string; bullets_id: string[]; bullets_en: string[]; highlight: boolean; active: boolean; sort: number };

@@ -2,7 +2,7 @@ import "server-only";
 import { after } from "next/server";
 import { db } from "../db";
 import { getSettings } from "../settings";
-import { dashboardUrl, ensureDashboardToken, appUrl } from "../tokens";
+import { dashboardUrl, ensureDashboardToken, appUrl, appHost } from "../tokens";
 import { signPayload } from "../crypto";
 import { buildIcs } from "../ics";
 import { fmtTime } from "../format";
@@ -80,7 +80,7 @@ async function deliver(template: TemplateName, registrationId: number, opts: { c
         if ((template === "schedule_assigned" || template === "schedule_changed") && ctx.slots.length) {
           const ics = buildIcs(
             ctx.slots.map((sl) => ({
-              uid: `slot-${sl.id}@${s.domain}`,
+              uid: `slot-${sl.id}@${appHost()}`,
               date: sl.date.toISOString().slice(0, 10),
               start: sl.start_time,
               end: sl.end_time,

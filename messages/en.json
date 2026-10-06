@@ -587,7 +587,7 @@
       "nothing": "Nothing needs follow-up. 👍"
     },
     "verify": {
-      "eyebrow": "Stage 2",
+      "eyebrow": "Check applicant data & documents",
       "title": "Verify Registrants",
       "filterStatus": "Status",
       "filterSim": "Simulator",
@@ -642,7 +642,7 @@
       "docAccessLogged": "Every document access is recorded in the activity log."
     },
     "pay": {
-      "eyebrow": "Stage 3–4",
+      "eyebrow": "Invoices & payment confirmation",
       "title": "Invoices & Payments",
       "kpiIssued": "Issued this month",
       "kpiPaid": "Paid",
@@ -694,7 +694,7 @@
       "received": "received {amount}"
     },
     "sched": {
-      "eyebrow": "Stage 5",
+      "eyebrow": "Arrange simulator sessions",
       "title": "Manage Schedule",
       "liveSync": "LIVE · synced to participant dashboards",
       "maint": "Block schedule",
@@ -863,7 +863,6 @@
       "tabPackages": "Packages & prices",
       "tabInstructors": "Instructors",
       "tabSims": "Simulators",
-      "pending": "Awaiting client confirmation",
       "groups": {
         "ops": "Operations & schedule",
         "billing": "Invoices & payments",
@@ -923,18 +922,50 @@
         "token_inactive_after_days": "Deactivate links N days after completion/cancel",
         "reupload_token_days": "Re-upload link validity (days)",
         "reupload_manual_threshold": "Flag for manual contact after N re-uploads",
-        "document_retention_days": "Auto-delete participant documents after (days) — counted from completed/cancelled/expired; 0 = never",
-        "upload_max_mb": "Max size per uploaded file (MB, 1–20)",
-        "domain": "Domain",
+        "document_retention_days": "Auto-delete participant documents after (days)",
+        "upload_max_mb": "Max size per uploaded file (MB)",
         "default_locale": "Default public language"
       },
-      "qNote": "Values marked Q# are dummy assumptions awaiting the client's answer (see README).",
-      "otpNote": "Not implemented yet (phase 7, if Q8 = yes).",
-      "sessionsNote": "Format HH:MM-HH:MM, comma-separated. All sessions must be the same length; 1 session = 1 slot. Future empty slots that no longer match are removed; booked slots are kept.",
-      "workDaysNote": "Block public holidays manually via Block maintenance in the schedule.",
       "sessions": "Sessions",
       "hoursShort": "{h} h",
-      "sessionsHint": "1 session = {slot} h → {h} simulator hours in total. Used to count the slots to schedule."
+      "sessionsHint": "1 session = {slot} h → {h} simulator hours in total. Used to count the slots to schedule.",
+      "advanced": "Advanced settings",
+      "advancedHint": "rarely needs changing; change only if you understand the impact",
+      "opt": {
+        "HOURS_FORFEITED": "Hours forfeited",
+        "HOURS_RETURNED": "Hours returned (can be rescheduled)"
+      },
+      "hints": {
+        "session_times": "Start–end of each session, format 07:30-11:30, comma-separated. All sessions must be the same length. Empty slots that no longer match are removed; booked slots stay.",
+        "work_days": "Days the simulator operates. Block public holidays manually via Block schedule.",
+        "slot_horizon_days": "How far ahead schedule slots are prepared (default 90 days).",
+        "show_instructor_to_participant": "If on, the instructor name appears on the participant dashboard & schedule email.",
+        "reschedule_free_hours": "Shown on invoices & emails as a term. Reschedules/cancellations are still decided by admin.",
+        "no_show_policy": "If a participant does not show up: session hours are forfeited, or returned so they can be rescheduled.",
+        "session_report_enabled": "If on, admin can upload a session report (PDF) that participants can download.",
+        "invoice_due_days": "How many days participants have to pay after the invoice is issued.",
+        "invoice_expire_days": "After the due date, how many more days until the invoice expires automatically.",
+        "vat_percent": "Enter 0 for no VAT.",
+        "bank_name": "Shown on invoices & billing emails.",
+        "bank_account": "Shown on invoices & billing emails.",
+        "bank_holder": "Account holder name, shown on invoices.",
+        "company_name": "Shown on the invoice header & email footer.",
+        "company_address": "Shown on the invoice header & email footer.",
+        "contact_email": "Email shown on invoices for participants to contact.",
+        "wa_admin_number": "WhatsApp number for payment confirmations & participant questions.",
+        "sender_name": "Sender name shown in the participant's inbox.",
+        "sender_email_billing": "Must be on a domain verified with the email service (Resend). A wrong value = emails not sent.",
+        "sender_email_schedule": "Must be on a domain verified with the email service (Resend). A wrong value = emails not sent.",
+        "admin_notify_emails": "Admin emails notified of every new registration.",
+        "office_hours": "Written in the registration confirmation email.",
+        "location_name": "Session location written in schedule & reminder emails.",
+        "send_link_on_paid": "If on, the dashboard link is sent when payment is confirmed (default: with the schedule email).",
+        "token_inactive_after_days": "Participant dashboard links deactivate N days after completion/cancellation.",
+        "reupload_token_days": "How many days the document re-upload link (after rejection) stays valid.",
+        "reupload_manual_threshold": "After N re-uploads, the applicant is flagged for manual contact.",
+        "document_retention_days": "Counted from completed/cancelled/expired. Enter 0 = never delete.",
+        "upload_max_mb": "Per-file limit, 1–20 MB."
+      }
     },
     "people": {
       "title": "Participant Personal Data",

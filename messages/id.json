@@ -587,7 +587,7 @@
       "nothing": "Tidak ada yang perlu ditindaklanjuti. 👍"
     },
     "verify": {
-      "eyebrow": "Tahap 2",
+      "eyebrow": "Cek data & dokumen pendaftar",
       "title": "Verifikasi Pendaftar",
       "filterStatus": "Status",
       "filterSim": "Simulator",
@@ -642,7 +642,7 @@
       "docAccessLogged": "Setiap akses dokumen dicatat di log aktivitas."
     },
     "pay": {
-      "eyebrow": "Tahap 3–4",
+      "eyebrow": "Invoice & konfirmasi pembayaran",
       "title": "Invoice & Pembayaran",
       "kpiIssued": "Terbit bulan ini",
       "kpiPaid": "Lunas",
@@ -694,7 +694,7 @@
       "received": "diterima {amount}"
     },
     "sched": {
-      "eyebrow": "Tahap 5",
+      "eyebrow": "Atur sesi simulator",
       "title": "Kelola Jadwal",
       "liveSync": "LIVE · tersinkron ke dashboard peserta",
       "maint": "Blok jadwal",
@@ -863,7 +863,6 @@
       "tabPackages": "Paket & harga",
       "tabInstructors": "Instruktur",
       "tabSims": "Simulator",
-      "pending": "Menunggu konfirmasi client",
       "groups": {
         "ops": "Operasional & jadwal",
         "billing": "Invoice & pembayaran",
@@ -923,18 +922,50 @@
         "token_inactive_after_days": "Nonaktifkan link N hari setelah selesai/batal",
         "reupload_token_days": "Masa berlaku link unggah ulang (hari)",
         "reupload_manual_threshold": "Tandai kontak manual setelah N× unggah ulang",
-        "document_retention_days": "Hapus otomatis dokumen peserta setelah (hari) — dihitung sejak pendaftaran selesai/batal/kedaluwarsa; 0 = tidak pernah",
-        "upload_max_mb": "Batas ukuran 1 file unggahan (MB, 1–20)",
-        "domain": "Domain",
+        "document_retention_days": "Hapus otomatis dokumen peserta setelah (hari)",
+        "upload_max_mb": "Batas ukuran 1 file unggahan (MB)",
         "default_locale": "Bahasa default publik"
       },
-      "qNote": "Nilai bertanda Q# adalah asumsi dummy yang menunggu jawaban client (lihat README).",
-      "otpNote": "Belum diimplementasikan (fase 7, bila Q8 = ya).",
-      "sessionsNote": "Format HH:MM-HH:MM, pisahkan koma. Semua sesi harus sama panjang; 1 sesi = 1 slot. Slot kosong mendatang yang tidak sesuai lagi akan dihapus, slot terisi tetap.",
-      "workDaysNote": "Tanggal merah diblok manual lewat Blok maintenance di Kelola jadwal.",
       "sessions": "Jumlah sesi",
       "hoursShort": "{h} jam",
-      "sessionsHint": "1 sesi = {slot} jam → total {h} jam simulator. Dipakai untuk menghitung slot yang harus dijadwalkan."
+      "sessionsHint": "1 sesi = {slot} jam → total {h} jam simulator. Dipakai untuk menghitung slot yang harus dijadwalkan.",
+      "advanced": "Pengaturan lanjutan",
+      "advancedHint": "jarang perlu diubah; ubah hanya bila paham dampaknya",
+      "opt": {
+        "HOURS_FORFEITED": "Jam hangus",
+        "HOURS_RETURNED": "Jam dikembalikan (bisa dijadwalkan ulang)"
+      },
+      "hints": {
+        "session_times": "Jam mulai–selesai tiap sesi, format 07:30-11:30, pisahkan dengan koma. Semua sesi harus sama panjang. Slot kosong yang tidak sesuai lagi dihapus otomatis; slot yang sudah terisi tidak berubah.",
+        "work_days": "Hari simulator beroperasi. Tanggal merah diblok manual lewat Blok jadwal di Kelola jadwal.",
+        "slot_horizon_days": "Seberapa jauh ke depan slot jadwal disiapkan (default 90 hari).",
+        "show_instructor_to_participant": "Jika aktif, nama instruktur tampil di dashboard & email jadwal peserta.",
+        "reschedule_free_hours": "Ditulis di invoice & email sebagai ketentuan. Reschedule/pembatalan tetap diputuskan admin.",
+        "no_show_policy": "Bila peserta tidak hadir: jam sesinya hangus, atau dikembalikan supaya bisa dijadwalkan ulang.",
+        "session_report_enabled": "Jika aktif, admin bisa mengunggah laporan sesi (PDF) yang bisa diunduh peserta di dashboard.",
+        "invoice_due_days": "Berapa hari peserta harus membayar sejak invoice terbit.",
+        "invoice_expire_days": "Setelah lewat jatuh tempo, berapa hari lagi invoice otomatis kedaluwarsa.",
+        "vat_percent": "Isi 0 bila tanpa PPN.",
+        "bank_name": "Tampil di invoice & email tagihan.",
+        "bank_account": "Tampil di invoice & email tagihan.",
+        "bank_holder": "Nama pemilik rekening, tampil di invoice.",
+        "company_name": "Tampil di kop invoice & footer email.",
+        "company_address": "Tampil di kop invoice & footer email.",
+        "contact_email": "Email yang ditampilkan di invoice untuk dihubungi peserta.",
+        "wa_admin_number": "Nomor WA tujuan konfirmasi pembayaran & pertanyaan peserta.",
+        "sender_name": "Nama pengirim yang terlihat di kotak masuk peserta.",
+        "sender_email_billing": "Hanya boleh alamat di domain yang sudah diverifikasi di layanan email (Resend). Salah isi = email tidak terkirim.",
+        "sender_email_schedule": "Hanya boleh alamat di domain yang sudah diverifikasi di layanan email (Resend). Salah isi = email tidak terkirim.",
+        "admin_notify_emails": "Email admin yang menerima pemberitahuan setiap ada pendaftar baru.",
+        "office_hours": "Ditulis di email konfirmasi pendaftaran.",
+        "location_name": "Lokasi sesi yang ditulis di email jadwal & pengingat.",
+        "send_link_on_paid": "Jika aktif, link dashboard peserta dikirim saat pembayaran lunas (default: saat email jadwal dikirim).",
+        "token_inactive_after_days": "Link dashboard peserta otomatis nonaktif N hari setelah pendaftaran selesai/batal.",
+        "reupload_token_days": "Berapa hari link unggah ulang dokumen (setelah ditolak) bisa dipakai.",
+        "reupload_manual_threshold": "Bila peserta sudah N kali unggah ulang, pendaftar ditandai untuk dihubungi manual.",
+        "document_retention_days": "Dihitung sejak pendaftaran selesai/batal/kedaluwarsa. Isi 0 = dokumen tidak pernah dihapus.",
+        "upload_max_mb": "Batas per file, 1–20 MB."
+      }
     },
     "people": {
       "title": "Data Personal Peserta",
