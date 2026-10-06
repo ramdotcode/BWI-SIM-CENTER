@@ -12,6 +12,7 @@ export const POST = handler(async (req: Request) => {
   for (const [k, v] of Object.entries(b)) {
     if (!(k in SETTING_DEFAULTS)) continue;
     const m = SETTING_META[k as SettingKey];
+    if (m.hidden) continue; // setting yang belum berpengaruh tidak bisa diubah dari Pengaturan
     if (m.type === "number") {
       const n = Number(v);
       if (!Number.isFinite(n) || n < 0) throw new HttpError(422, `${k}: angka tidak valid`);

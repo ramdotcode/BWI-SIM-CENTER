@@ -7,7 +7,7 @@ import { useToast } from "../Toast";
 import { api } from "../upload";
 import { dayShort, rupiah } from "@/lib/format";
 
-type Meta = { type: string; group: string; q?: string; options?: string[] };
+type Meta = { type: string; group: string; q?: string; options?: string[]; hidden?: boolean };
 
 export function SettingsForm({ values, meta }: { values: Record<string, unknown>; meta: Record<string, Meta> }) {
   const t = useTranslations("admin.settings");
@@ -37,7 +37,7 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
           <div className="sect" style={{ marginBottom: 12 }}>{t(`groups.${g}` as "groups.ops")}</div>
           <div className="fgrid">
             {Object.entries(meta)
-              .filter(([, m]) => m.group === g)
+              .filter(([, m]) => m.group === g && !m.hidden)
               .map(([k, m]) => {
                 const Field = m.type === "days" ? "div" : "label"; // tombol di dalam <label> ikut terpicu saat label diklik
                 return (
