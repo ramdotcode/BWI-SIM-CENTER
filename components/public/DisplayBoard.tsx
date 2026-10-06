@@ -21,6 +21,7 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
   const [revoked, setRevoked] = useState(false);
   const [now, setNow] = useState(() => new Date());
   const [full, setFull] = useState(false);
+  const [canFull, setCanFull] = useState(false); // iPhone Safari tidak mendukung Fullscreen API
   const wake = useRef<WakeLock | null>(null);
 
   const [last, setLast] = useState(() => Date.now());
@@ -61,6 +62,7 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
     } catch {}
   }, []);
   useEffect(() => {
+    setCanFull(!!document.fullscreenEnabled);
     lockScreen();
     const onVis = () => document.visibilityState === "visible" && lockScreen();
     const onFs = () => setFull(!!document.fullscreenElement);
@@ -116,10 +118,10 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
             <div className="dt">{dayLabel(b.today, true)}{label ? ` · ${label}` : ""}</div>
           </div>
         </div>
-        <div className="row" style={{ gap: 22 }}>
+        <div className="row dh-r" style={{ gap: 22 }}>
           <span className="live">{t("live")}</span>
-          <span className="clk">{clock}</span>
-          {!full && <button type="button" className="btn sm fsbtn" onClick={goFull}>⛶ {t("fullscreen")}</button>}
+          <span className="clk" suppressHydrationWarning>{clock}</span>
+          {!full && canFull && <button type="button" className="btn sm fsbtn" onClick={goFull}>⛶ {t("fullscreen")}</button>}
         </div>
       </header>
 

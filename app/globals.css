@@ -521,3 +521,23 @@ th.sticky-col{background:var(--teal-tint);z-index:2}
   .steps-h .st:not(.now) .st-l{display:none}
   .steps-h .st.now{flex:1 1 auto}
 }
+
+/* ---------- Mode Layar dibuka di HP ---------- */
+@media (max-width:600px){
+  .disp .dh{padding:1em 16px;gap:.8em}
+  .disp .dh .dh-r{width:100%;flex-wrap:wrap;justify-content:space-between;gap:8px 12px!important}
+  .disp .dh .fsbtn{width:100%;justify-content:center}
+  .disp .dh .live{white-space:nowrap}
+  .disp .clk{font-size:2em}
+  .disp .dm{padding:1.1em 16px}
+  .disp .df{flex-wrap:wrap;padding:.8em 16px}
+}
+
+/* ---------- Baris unggah dokumen (form daftar & unggah ulang) di HP ---------- */
+@media (max-width:600px){
+  .upload{flex-wrap:wrap;gap:10px 12px;padding:12px}
+  .upload .grow{flex:1 1 calc(100% - 52px);min-width:0}
+  .upload .small{overflow-wrap:anywhere}
+  .upload .pill{margin-left:52px}
+  .upload .btn{margin-left:auto}
+}
