@@ -19,7 +19,7 @@ export default async function PanelLayout({ children, params }: { children: Reac
     db.notification.count({ where: { channel: "WA", status: "MANUAL" } }),
   ]);
   return (
-    <div className="shell">
+    <div className="shell adm-shell">
       <AdminSide admin={{ name: admin.name, role: admin.role }} counts={{ verify, pay, wa }} />
       <main className="main">
         <AdminLive />

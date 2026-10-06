@@ -1,5 +1,5 @@
 "use client";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/lib/i18n/navigation";
 import { LangSwitch } from "../LangSwitch";
@@ -21,46 +21,80 @@ export function AdminSide({ admin, counts }: { admin: { name: string; role: "ADM
   const t = useTranslations("admin");
   const path = usePathname();
   const isSA = admin.role === "SUPER_ADMIN";
+  const [open, setOpen] = useState(false);
+  const total = counts.verify + counts.pay + counts.wa;
+
+  // Drawer mobile: tutup saat pindah halaman / Escape, kunci scroll body saat terbuka.
+  useEffect(() => setOpen(false), [path]);
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const brand = (
+    <div className="brand">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand/bwi-aviation.png" alt="BWI" />
+      <div>
+        <div className="who">Sim Center</div>
+        <div className="sub">{t(`brandSub.${admin.role}`)}</div>
+      </div>
+    </div>
+  );
   return (
-    <aside className="side">
-      <div className="brand">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/brand/bwi-aviation.png" alt="BWI" />
-        <div>
-          <div className="who">Sim Center</div>
-          <div className="sub">{t(`brandSub.${admin.role}`)}</div>
-        </div>
-      </div>
-      {NAV.filter((n) => !n.sa || isSA).map((n) => {
-        const on = n.href === "/admin" ? path === "/admin" : path.startsWith(n.href);
-        const c = n.count ? counts[n.count] : 0;
-        return (
-          <Link key={n.href} href={n.href} className={`nav ${on ? "on" : ""}`}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{n.icon}</svg>
-            {t(`nav.${n.key}` as "nav.home")}
-            {n.sa ? <span className="cnt" style={{ background: "var(--teal-deep)", color: "var(--lime)" }}>SA</span> : c ? <span className="cnt">{c}</span> : null}
-          </Link>
-        );
-      })}
-      <div className="row" style={{ justifyContent: "center", marginTop: "auto", padding: "6px 0" }}>
-        <Suspense><LangSwitch /></Suspense>
-      </div>
-      <div className="user" style={{ marginTop: 0 }}>
-        <span className="avatar">{initials(admin.name)}</span>
-        <div className="grow">
-          <div style={{ fontWeight: 600, fontSize: 14 }}>{admin.name}</div>
-          <div className="small muted">{t(`roleDesc.${admin.role}`)}</div>
-          <button
-            className="logout"
-            onClick={async () => {
-              await fetch("/api/admin/auth/logout", { method: "POST" });
-              window.location.href = "/admin/login";
-            }}
-          >
-            {t("logout")}
+    <>
+      <header className="adm-top">
+        {brand}
+        <button type="button" className="adm-burger" aria-label={t("menuOpen")} aria-expanded={open} aria-controls="admin-side" onClick={() => setOpen(true)}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          {total ? <span className="dot" /> : null}
+        </button>
+      </header>
+      <div className={`adm-scrim ${open ? "on" : ""}`} onClick={() => setOpen(false)} aria-hidden />
+      <aside id="admin-side" className={`side ${open ? "on" : ""}`}>
+        <div className="side-head">
+          {brand}
+          <button type="button" className="adm-close" aria-label={t("menuClose")} onClick={() => setOpen(false)}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
           </button>
         </div>
-      </div>
-    </aside>
+        {NAV.filter((n) => !n.sa || isSA).map((n) => {
+          const on = n.href === "/admin" ? path === "/admin" : path.startsWith(n.href);
+          const c = n.count ? counts[n.count] : 0;
+          return (
+            <Link key={n.href} href={n.href} className={`nav ${on ? "on" : ""}`}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{n.icon}</svg>
+              {t(`nav.${n.key}` as "nav.home")}
+              {n.sa ? <span className="cnt" style={{ background: "var(--teal-deep)", color: "var(--lime)" }}>SA</span> : c ? <span className="cnt">{c}</span> : null}
+            </Link>
+          );
+        })}
+        <div className="row" style={{ justifyContent: "center", marginTop: "auto", padding: "6px 0" }}>
+          <Suspense><LangSwitch /></Suspense>
+        </div>
+        <div className="user" style={{ marginTop: 0 }}>
+          <span className="avatar">{initials(admin.name)}</span>
+          <div className="grow">
+            <div style={{ fontWeight: 600, fontSize: 14 }}>{admin.name}</div>
+            <div className="small muted">{t(`roleDesc.${admin.role}`)}</div>
+            <button
+              className="logout"
+              onClick={async () => {
+                await fetch("/api/admin/auth/logout", { method: "POST" });
+                window.location.href = "/admin/login";
+              }}
+            >
+              {t("logout")}
+            </button>
+          </div>
+        </div>
+      </aside>
+    </>
   );
 }

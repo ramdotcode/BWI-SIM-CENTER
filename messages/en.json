@@ -522,6 +522,8 @@
       "SUPER_ADMIN": "Super Admin"
     },
     "logout": "Sign out",
+    "menuOpen": "Open menu",
+    "menuClose": "Close menu",
     "nav": {
       "home": "Overview",
       "verify": "Verify registrants",

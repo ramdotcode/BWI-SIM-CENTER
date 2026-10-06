@@ -522,6 +522,8 @@
       "SUPER_ADMIN": "Super Admin"
     },
     "logout": "Keluar",
+    "menuOpen": "Buka menu",
+    "menuClose": "Tutup menu",
     "nav": {
       "home": "Ringkasan",
       "verify": "Verifikasi pendaftar",
