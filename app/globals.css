@@ -466,6 +466,7 @@ th.sticky-col{background:var(--teal-tint);z-index:2}
 .adm-top,.adm-scrim,.adm-close{display:none}
 .adm-shell .side-head{display:contents}
 @media (max-width:840px){
+  .adm-shell{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
   .adm-shell .adm-top{display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:60;background:var(--card);border-bottom:1px solid var(--line);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
   .adm-top .brand{display:flex;align-items:center;gap:10px;min-width:0}
   .adm-top .brand img{height:30px}
@@ -484,4 +485,39 @@ th.sticky-col{background:var(--teal-tint);z-index:2}
   .adm-shell .side .user{display:flex}
   .adm-scrim{display:block;position:fixed;inset:0;z-index:74;background:rgba(7,42,52,.45);opacity:0;pointer-events:none;transition:opacity .25s}
   .adm-scrim.on{opacity:1;pointer-events:auto}
+}
+
+/* ---------- Dashboard peserta: header sticky + strip menu geser di layar kecil ---------- */
+.side-nav{display:contents}
+@media (max-width:840px){
+  .pt-shell{grid-template-columns:minmax(0,1fr);grid-template-rows:auto 1fr}
+  .pt-shell .side{position:sticky;top:0;z-index:60;flex-direction:row;flex-wrap:wrap;align-items:center;gap:0 10px;padding:10px 16px 0;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+  .pt-shell .side .brand{width:auto;flex:1;min-width:0}
+  .pt-shell .side .brand img{height:30px}
+  .pt-shell .side-lang{margin:0!important;padding:0!important}
+  .pt-shell .side-nav{order:3;position:relative;display:flex;gap:6px;width:calc(100% + 32px);margin:0 -16px;padding:10px 16px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .pt-shell .side-nav::-webkit-scrollbar{display:none}
+  .pt-shell .side-nav .nav{flex:none;width:auto;padding:7px 12px;border-radius:999px;white-space:nowrap;font-size:13.5px}
+  .pt-shell .side-nav .nav svg{width:16px;height:16px}
+  .pt-shell .dash-sec{scroll-margin-top:124px}
+}
+
+/* ---------- Penyesuaian layar kecil lain ---------- */
+@media (max-width:600px){
+  /* Filter admin: isi selebar layar, tidak berundak */
+  .topbar > .row.wrap,.topbar > .dbtoolbar{width:100%}
+  .topbar label.filter{flex:1 1 150px}
+  .topbar label.filter select.filter{width:100%}
+  .topbar input.in{flex:1 1 100%;width:100%!important}
+  /* KPI 2 kolom supaya tidak memanjang */
+  .g4{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .g4 .kpi{padding:14px}
+  .g4 .kpi .v{font-size:26px}
+  /* Navigasi minggu muat di kartu jadwal */
+  .weeknav .wk{min-width:0;font-size:14px;white-space:nowrap}
+  /* Stepper formulir: nomor saja, label hanya untuk langkah aktif */
+  .steps-h{flex-wrap:nowrap}
+  .steps-h .st{flex:0 0 auto;padding:10px 12px}
+  .steps-h .st:not(.now) .st-l{display:none}
+  .steps-h .st.now{flex:1 1 auto}
 }

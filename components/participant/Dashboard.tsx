@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { LangSwitch } from "../LangSwitch";
@@ -138,8 +138,34 @@ export function ParticipantDashboard({ token, initial }: { token: string; initia
     [t],
   );
 
+  // Tandai menu sesuai bagian yang sedang terlihat (scroll-spy).
+  const [active, setActive] = useState<string>("jadwal");
+  useEffect(() => {
+    const ids = nav.map(([id]) => id);
+    const onScroll = () => {
+      const y = window.innerHeight * 0.3;
+      let cur = ids[0];
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        if (el && el.getBoundingClientRect().top <= y) cur = id;
+      }
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4) cur = ids[ids.length - 1];
+      setActive(cur);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [nav]);
+  useEffect(() => {
+    // Di mobile menu berupa strip geser: pastikan item aktif terlihat.
+    const strip = document.querySelector<HTMLElement>(".side-nav");
+    const a = strip?.querySelector<HTMLElement>(`a[href="#${active}"]`);
+    if (!strip || !a || strip.scrollWidth <= strip.clientWidth) return;
+    strip.scrollTo({ left: a.offsetLeft - (strip.clientWidth - a.offsetWidth) / 2, behavior: "smooth" });
+  }, [active]);
+
   return (
-    <div className="shell">
+    <div className="shell pt-shell">
       <aside className="side">
         <div className="brand">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -149,13 +175,15 @@ export function ParticipantDashboard({ token, initial }: { token: string; initia
             <div className="sub">{t("side")}</div>
           </div>
         </div>
-        {nav.map(([id, label, ic], i) => (
-          <a key={id} href={`#${id}`} className={`nav ${i === 0 ? "on" : ""}`}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{ic}</svg>
-            {label}
-          </a>
-        ))}
-        <div className="row" style={{ justifyContent: "center", marginTop: "auto", padding: "6px 0" }}>
+        <nav className="side-nav">
+          {nav.map(([id, label, ic]) => (
+            <a key={id} href={`#${id}`} className={`nav ${active === id ? "on" : ""}`} aria-current={active === id ? "location" : undefined}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">{ic}</svg>
+              {label}
+            </a>
+          ))}
+        </nav>
+        <div className="row side-lang" style={{ justifyContent: "center", marginTop: "auto", padding: "6px 0" }}>
           <Suspense><LangSwitch /></Suspense>
         </div>
         <div className="user" style={{ marginTop: 0 }}>

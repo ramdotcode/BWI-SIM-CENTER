@@ -188,9 +188,9 @@ export function RegisterForm({ packages, slotHours, initialPkg, initialSim }: { 
     <div ref={topRef}>
       <div className="steps-h" role="tablist">
         {stepNames.map((n, i) => (
-          <button type="button" key={n} className={`st ${step === i + 1 ? "now" : ""} ${step > i + 1 ? "done" : ""}`} onClick={() => go(i + 1)} style={{ border: 0, background: step === i + 1 ? undefined : "transparent", textAlign: "left", font: "inherit" }}>
+          <button type="button" key={n} className={`st ${step === i + 1 ? "now" : ""} ${step > i + 1 ? "done" : ""}`} onClick={() => go(i + 1)} aria-label={`${i + 1}. ${n}`} style={{ border: 0, background: step === i + 1 ? undefined : "transparent", textAlign: "left", font: "inherit" }}>
             <span className="n">{step > i + 1 ? "✓" : i + 1}</span>
-            {n}
+            <span className="st-l">{n}</span>
           </button>
         ))}
       </div>
