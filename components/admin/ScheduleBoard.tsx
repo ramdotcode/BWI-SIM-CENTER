@@ -12,7 +12,7 @@ import type { AdminWeek, QueueItem } from "@/lib/services/admin-schedule";
 type Slot = AdminWeek["slots"][number];
 type Ins = { id: number; name: string; sims: string[]; slots: number };
 
-export function ScheduleBoard(props: { initialWeek: AdminWeek; initialQueue: QueueItem[]; initialInstructors: Ins[]; allInstructors: Ins[]; today: string; slotMinutes: number; initialReg: number | null; reportEnabled: boolean }) {
+export function ScheduleBoard(props: { initialWeek: AdminWeek; initialQueue: QueueItem[]; initialInstructors: Ins[]; allInstructors: Ins[]; today: string; slotMinutes: number; initialReg: number | null; reportEnabled: boolean; showInstructor: boolean }) {
   const t = useTranslations("admin.sched");
   const tc = useTranslations("common");
   const te = useTranslations("enums");
@@ -252,6 +252,10 @@ export function ScheduleBoard(props: { initialWeek: AdminWeek; initialQueue: Que
           onRelease={(reason, notify) => run(async () => { await api(`/api/admin/slots/release`, { body: { slotId: detail.id, reason, notify } }); return t("toastReleased"); }, () => setDetail(null))}
           onMove={(targetId, notify) => run(async () => { await api(`/api/admin/slots/move`, { body: { slotId: detail.id, targetId, notify } }); return t("toastMoved"); }, () => setDetail(null))}
           onResult={(status, note, report) => run(async () => { await api(`/api/admin/slots/result`, { body: { slotId: detail.id, status, note, report_upload: report } }); return t("toastResult"); }, () => setDetail(null))}
+          instructors={props.allInstructors.filter((i) => i.sims.includes(sim))}
+          load={load}
+          showInstructor={props.showInstructor}
+          onInstructor={(instructorId, notify) => run(async () => { const r = await api<{ name: string | null }>(`/api/admin/slots/instructor`, { body: { slotId: detail.id, instructorId, notify } }); return t("toastInstructor", { name: r.name ?? "—" }); }, () => setDetail(null))}
         />
       )}
 
@@ -317,15 +321,16 @@ function AssignModal({ slot, sim, queue, instructors, load, defaultReg, busy, on
   );
 }
 
-function DetailModal({ slot, sim, busy, reportEnabled, onClose, slotLabel, onRelease, onMove, onResult }: {
+function DetailModal({ slot, sim, busy, reportEnabled, onClose, slotLabel, onRelease, onMove, onResult, instructors, load, showInstructor, onInstructor }: {
   slot: Slot; sim: string; busy: boolean; reportEnabled: boolean; onClose: () => void; slotLabel: (x: Slot) => string;
   onRelease: (reason: string, notify: boolean) => void; onMove: (targetId: number, notify: boolean) => void; onResult: (status: string, note: string, report?: string) => void;
+  instructors: Ins[]; load: Ins[]; showInstructor: boolean; onInstructor: (instructorId: number | null, notify: boolean) => void;
 }) {
   const t = useTranslations("admin.sched");
   const tc = useTranslations("common");
   const te = useTranslations("enums");
   const l = useLocale() as "id" | "en";
-  const [mode, setMode] = useState<"" | "release" | "move" | "result">(slot.past && slot.status === "SCHEDULED" ? "result" : "");
+  const [mode, setMode] = useState<"" | "release" | "move" | "result" | "instructor">(slot.past && slot.status === "SCHEDULED" ? "result" : "");
   const [reason, setReason] = useState("");
   const [notify, setNotify] = useState(true);
   const [free, setFree] = useState<{ id: number; date: string; start: string; end: string }[] | null>(null);
@@ -334,6 +339,8 @@ function DetailModal({ slot, sim, busy, reportEnabled, onClose, slotLabel, onRel
   const [note, setNote] = useState(slot.result_note ?? "");
   const [report, setReport] = useState<string | undefined>();
   const [upl, setUpl] = useState("");
+  const [ins, setIns] = useState<number | "">(slot.instructor_id ?? "");
+  const [insNotify, setInsNotify] = useState(false);
   const future = !slot.past && slot.status === "SCHEDULED";
   return (
     <Modal open onClose={onClose} title={t("mDetailTitle")} wide footer={<button className="btn ghost" onClick={onClose}>{tc("close")}</button>}>
@@ -347,11 +354,25 @@ function DetailModal({ slot, sim, busy, reportEnabled, onClose, slotLabel, onRel
         {slot.report && <><span className="k">{t("report")}</span><span className="v"><a href={`/api/admin/uploads/report:${slot.id}`} target="_blank" rel="noopener noreferrer">PDF</a></span></>}
       </div>
       <div className="row wrap">
+        {future && <button className={`btn sm ${mode === "instructor" ? "" : "ghost"}`} onClick={() => setMode("instructor")}>{t("changeInstructor")}</button>}
         {future && <button className={`btn sm ${mode === "release" ? "" : "ghost"}`} onClick={() => setMode("release")}>{t("release")}</button>}
         {future && <button className={`btn sm ${mode === "move" ? "" : "ghost"}`} onClick={async () => { setMode("move"); if (!free) setFree(await api(`/api/admin/slots/free?sim=${sim}`)); }}>{t("move")}</button>}
         {slot.past && <button className={`btn sm ${mode === "result" ? "" : "ghost"}`} onClick={() => setMode("result")}>{t("result")}</button>}
       </div>
       {!slot.past && slot.status === "SCHEDULED" && <span className="small faint">{t("resultOnlyPast")}</span>}
+      {mode === "instructor" && (
+        <div className="stack">
+          <label className="field">
+            <span className="flabel">{t("newInstructor")}</span>
+            <select className="in" value={ins} onChange={(e) => setIns(e.target.value ? Number(e.target.value) : "")}>
+              <option value="">{t("noInstructor")}</option>
+              {instructors.map((i) => <option key={i.id} value={i.id}>{i.name} · {tc("slots", { n: load.find((x) => x.id === i.id)?.slots ?? 0 })}{i.id === slot.instructor_id ? ` (${t("current")})` : ""}</option>)}
+            </select>
+          </label>
+          {showInstructor && <label className="row small"><input type="checkbox" checked={insNotify} onChange={(e) => setInsNotify(e.target.checked)} />{t("notifyInstructor")}</label>}
+          <button className="btn" disabled={busy || (ins || null) === (slot.instructor_id ?? null)} onClick={() => onInstructor(ins || null, insNotify)}>{t("saveInstructor")}</button>
+        </div>
+      )}
       {mode === "release" && (
         <div className="stack">
           <label className="field"><span className="flabel">{t("releaseReason")}</span><input className="in" value={reason} onChange={(e) => setReason(e.target.value)} /></label>

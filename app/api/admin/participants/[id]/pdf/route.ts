@@ -2,6 +2,7 @@ import { handler } from "@/lib/api";
 import { requireAdminApi } from "@/lib/auth";
 import { logActivity } from "@/lib/activity";
 import { participantPdf } from "@/lib/pdf/participant";
+import { deliverFile } from "@/lib/storage";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -13,7 +14,5 @@ export const GET = handler(async (req: Request, { params }: { params: Promise<{ 
   const id = Number((await params).id);
   const r = await participantPdf(id, a.name);
   await logActivity({ type: "ADMIN", id: a.id }, "export.participant_pdf", "participant", id, { docs: r.docCount, pages: r.pages, registrations: r.regIds });
-  return new Response(new Uint8Array(r.data), {
-    headers: { "content-type": "application/pdf", "content-disposition": `attachment; filename="${r.filename}"`, "cache-control": "no-store" },
-  });
+  return deliverFile(req, r.data, r.filename, "application/pdf");
 });

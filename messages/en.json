@@ -768,7 +768,14 @@
       "blockKind": "Block type",
       "kindOther": "Other",
       "otherReason": "Description (free text)",
-      "otherReasonPh": "Public holiday, internal event, sim used by others, …"
+      "otherReasonPh": "Public holiday, internal event, sim used by others, …",
+      "changeInstructor": "Change instructor",
+      "newInstructor": "New instructor",
+      "noInstructor": "— No instructor —",
+      "current": "current",
+      "notifyInstructor": "Notify participant (email/WA, only if the schedule was sent)",
+      "saveInstructor": "Save instructor",
+      "toastInstructor": "Instructor changed: {name}"
     },
     "accounts": {
       "eyebrow": "Settings",

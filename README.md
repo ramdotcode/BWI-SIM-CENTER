@@ -108,9 +108,13 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 ### Alternatif tanpa Vercel
 Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga didukung; di sana driver `local` (disk terenkripsi) boleh dipakai asal disk permanen & di-backup.
 
+## Ganti instruktur pada sesi terjadwal (6 Okt 2026)
+
+Kelola jadwal → klik sesi mendatang → **Ganti instruktur**: pilih instruktur lain (atau tanpa instruktur) tanpa melepas slot. Dicek: instruktur aktif, mengajar simulator tersebut, tidak bentrok di simulator lain pada jam yang sama. Opsi beri tahu peserta (bila jadwal sudah dikirim & nama instruktur ditampilkan — Q2). Log: `slot.instructor_changed`. Daftar instruktur dikelola di Pengaturan → Instruktur.
+
 ## Perubahan CR-06 (6 Okt 2026): unduh data personal sebagai 1 PDF
 
-Tombol **⤓ PDF** (Super Admin) di samping **⤓ ZIP** — di halaman *Data personal* dan di kotak *Dokumen yang diunggah* pada drawer *Verifikasi pendaftar* (semua status). Hasil: satu PDF A4 = lembar data diri (pas foto, identitas, kontak, lisensi, ICAO, medical, riwayat pendaftaran, daftar lampiran) + semua dokumen terbaru sebagai lampiran (gambar 1 halaman penuh; PDF peserta digabung semua halamannya), tiap halaman berjudul "Lampiran n · jenis dokumen · No. REG" dan bernomor halaman. Dibuat saat diminta (`lib/pdf/participant.tsx`, `@react-pdf/renderer` + `pdf-lib`), **tidak disimpan** dan tanpa perubahan database; tercatat di log (`export.participant_pdf`). PDF peserta yang terkunci/rusak diganti halaman keterangan.
+Tombol **⤓ PDF** (Super Admin) di samping **⤓ ZIP** — di halaman *Data personal* dan di kotak *Dokumen yang diunggah* pada drawer *Verifikasi pendaftar* (semua status). Hasil: satu PDF A4 = lembar data diri (pas foto, identitas, kontak, lisensi, ICAO, medical, riwayat pendaftaran, daftar lampiran) + semua dokumen terbaru sebagai lampiran (gambar 1 halaman penuh; PDF peserta digabung semua halamannya), tiap halaman berjudul "Lampiran n · jenis dokumen · No. REG" dan bernomor halaman. Dibuat saat diminta (`lib/pdf/participant.tsx`, `@react-pdf/renderer` + `pdf-lib`), tanpa perubahan database. **Batas respons Vercel 4,5 MB:** di mode s3 (Vercel) ZIP/PDF disimpan sementara di R2 `incoming/exports/…` lalu browser diarahkan ke URL unduh bertanda tangan 5 menit (`deliverFile`, `lib/storage`); file dihapus otomatis oleh lifecycle R2 `incoming/` (1 hari). Mode local: dikirim langsung. tercatat di log (`export.participant_pdf`). PDF peserta yang terkunci/rusak diganti halaman keterangan.
 
 ## Perubahan CR-05 (6 Okt 2026, masukan klien)
 

@@ -1,6 +1,7 @@
 import "server-only";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { encrypt, decrypt, signPayload, verifyPayload } from "../crypto";
@@ -90,4 +91,18 @@ export const storage: Storage = (g.__storage ??= create());
 /** Verifikasi token URL bertanda tangan untuk driver local. */
 export function verifyFileToken(t: string) {
   return verifyPayload<{ k: string; d?: string; m?: string }>(t);
+}
+
+/**
+ * Kirim file hasil generate (ZIP/PDF) ke browser. Fungsi Vercel membatasi respons maks 4,5 MB, jadi di mode s3
+ * file disimpan sementara di `incoming/exports/…` (dihapus otomatis oleh lifecycle R2 `incoming/` 1 hari)
+ * lalu browser diarahkan ke URL unduh bertanda tangan 5 menit. Mode local: langsung dikirim.
+ */
+export async function deliverFile(req: Request, data: Uint8Array, filename: string, mime: string): Promise<Response> {
+  if (storage.mode === "s3") {
+    const key = `incoming/exports/${randomUUID()}/${filename}`;
+    await storage.put(key, Buffer.from(data), mime);
+    return Response.redirect(new URL(await storage.signedUrl(key, 300, { download: filename, mime }), req.url), 302);
+  }
+  return new Response(new Uint8Array(data), { headers: { "content-type": mime, "content-disposition": `attachment; filename="${filename}"`, "cache-control": "no-store" } });
 }

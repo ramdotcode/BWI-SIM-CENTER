@@ -768,7 +768,14 @@
       "blockKind": "Jenis blok",
       "kindOther": "Lainnya",
       "otherReason": "Keterangan (teks bebas)",
-      "otherReasonPh": "Libur nasional, acara internal, sim dipakai pihak lain, …"
+      "otherReasonPh": "Libur nasional, acara internal, sim dipakai pihak lain, …",
+      "changeInstructor": "Ganti instruktur",
+      "newInstructor": "Instruktur baru",
+      "noInstructor": "— Tanpa instruktur —",
+      "current": "sekarang",
+      "notifyInstructor": "Beri tahu peserta (email/WA, hanya bila jadwal sudah dikirim)",
+      "saveInstructor": "Simpan instruktur",
+      "toastInstructor": "Instruktur diganti: {name}"
     },
     "accounts": {
       "eyebrow": "Pengaturan",

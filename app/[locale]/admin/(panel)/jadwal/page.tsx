@@ -27,6 +27,7 @@ export default async function Jadwal({ params, searchParams }: { params: Promise
       slotMinutes={s.slot_minutes}
       initialReg={reg?.id ?? null}
       reportEnabled={s.session_report_enabled}
+      showInstructor={s.show_instructor_to_participant}
     />
   );
 }

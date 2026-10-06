@@ -226,6 +226,35 @@ export async function releaseSlot(admin: AdminCtx, slotId: number, opts: { reaso
   if (opts.notify && schedSent) await notify("schedule_changed", regId, { extra: { note: opts.reason } });
 }
 
+/**
+ * Ganti instruktur pada sesi yang sudah terjadwal tanpa melepas slot. Cek: instruktur aktif, mengajar simulator ini,
+ * tidak sedang mengajar di slot lain pada jam yang sama. Notifikasi opsional (hanya bila jadwal sudah dikirim
+ * dan nama instruktur ditampilkan ke peserta — setting Q2).
+ */
+export async function changeInstructor(admin: AdminCtx, slotId: number, instructorId: number | null, opts: { notify: boolean }) {
+  const s = await getSettings();
+  const r = await db.$transaction(async (tx) => {
+    const slot = await tx.slot.findUnique({ where: { id: slotId }, include: { simulator: true, instructor: true, registration: true } });
+    if (!slot || slot.status !== "SCHEDULED" || !slot.registration_id) throw new HttpError(409, "Slot tidak sedang terjadwal");
+    if (wibInstant(slot.date, slot.end_time) <= new Date()) throw new HttpError(409, "Sesi sudah selesai — instruktur tidak bisa diganti");
+    if (slot.instructor_id === instructorId) throw new HttpError(422, "Instruktur sama dengan sebelumnya");
+    let name: string | null = null;
+    if (instructorId) {
+      const ins = await tx.instructor.findUnique({ where: { id: instructorId } });
+      if (!ins || !ins.active) throw new HttpError(422, "Instruktur tidak ditemukan atau nonaktif");
+      if (!ins.simulator_codes.includes(slot.simulator.code)) throw new HttpError(422, `${ins.name} tidak terdaftar mengajar ${slot.simulator.code}`);
+      const clash = await tx.slot.count({ where: { instructor_id: instructorId, date: slot.date, start_time: slot.start_time, status: "SCHEDULED", NOT: { id: slot.id } } });
+      if (clash) throw new HttpError(409, `${ins.name} sudah mengajar di simulator lain pada jam ini`);
+      name = ins.name;
+    }
+    await tx.slot.update({ where: { id: slotId }, data: { instructor_id: instructorId, updated_by: admin.id } });
+    await logActivity({ type: "ADMIN", id: admin.id }, "slot.instructor_changed", "slot", slotId, { registration_id: slot.registration_id, from: slot.instructor?.name ?? null, to: name }, tx);
+    return { regId: slot.registration_id, schedSent: slot.registration?.schedule_sent_at, name };
+  });
+  if (opts.notify && r.schedSent && s.show_instructor_to_participant) await notify("schedule_changed", r.regId, { extra: { note: r.name ? `instruktur: ${r.name}` : "instruktur diperbarui" } });
+  return { name: r.name };
+}
+
 /** E-05: pindahkan slot peserta ke slot kosong lain (instruktur ikut bila cocok). */
 export async function moveSlot(admin: AdminCtx, slotId: number, targetId: number, opts: { notify: boolean; instructorId?: number | null }) {
   const s = await getSettings();
