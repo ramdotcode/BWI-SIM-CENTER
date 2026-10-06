@@ -1,7 +1,7 @@
 // Paket sesuai flyer BWI 2026 (CR-04, Okt 2026). Harga & isi paket dari flyer klien;
 // JAM SIMULATOR (`hours`) MASIH DUMMY — flyer tidak menyebut jam. Ubah di Admin → Pengaturan → Paket.
-// "Recurrent by pair" Rp 46 jt = 2 pilot berpasangan → 1 pendaftaran = 1 peserta = Rp 23 jt
-// (sesuai contoh invoice klien #29092026-069P). Paket "+ Stand in": pilot pendamping disediakan BWI.
+// "Recurrent (by pair)" Rp 46 jt = 1 paket untuk 2 pilot berpasangan (keputusan user 6 Okt 2026);
+// didaftarkan oleh salah satu pilot, nama pasangan ditulis di catatan. Paket "+ Stand in": pilot pendamping disediakan BWI.
 
 export const PACKAGES = [
   {
@@ -12,10 +12,10 @@ export const PACKAGES = [
     bullets_en: ["Ground Training", "Simulator Training", "Meals & transport", "DGCA Written Test", "DGCA Sim Check"],
   },
   {
-    code: "pc", sort: 2, hours: 8, price: 23_000_000n, highlight: true,
+    code: "pc", sort: 2, hours: 8, price: 46_000_000n, highlight: true,
     name_id: "Recurrent (by pair)", name_en: "Recurrent (by pair)", short_id: "Recurrent (by pair)", short_en: "Recurrent (by pair)",
-    description_id: "Datang berpasangan (by pair): Rp 46 jt per pasang = Rp 23 jt per pilot. Pasangan mendaftar masing-masing.",
-    description_en: "Come as a pair: Rp 46m per pair = Rp 23m per pilot. Each pilot registers separately.",
+    description_id: "Untuk 2 pilot yang datang berpasangan — 1 paket untuk berdua. Tulis nama pilot pasangan di Catatan untuk admin.",
+    description_en: "For 2 pilots coming as a pair — 1 package for both. Write your partner's name in the Notes for admin.",
     bullets_id: ["Ground Training", "LOFT", "Proficiency Check", "License Endorsement"],
     bullets_en: ["Ground Training", "LOFT", "Proficiency Check", "License Endorsement"],
   },
