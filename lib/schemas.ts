@@ -114,8 +114,8 @@ export const step3 = z.object({
   documents: z.record(z.string(), z.string().min(8)),
 });
 
-/** Tanggal awal preferensi paling cepat H+N dari hari daftar (waktu verifikasi + bayar H-1). */
-export const PREF_MIN_LEAD_DAYS = 3;
+/** Tanggal awal preferensi paling cepat H+N dari hari daftar (H+1 = besok; pembayaran H-1 = hari ini). */
+export const PREF_MIN_LEAD_DAYS = 1; // mulai besok → bayar hari ini (H-1)
 /** Jatuh tempo pembayaran = H-1 tanggal awal preferensi ("YYYY-MM-DD"). */
 export const payByDate = (prefFrom: string) => addDays(prefFrom, -1);
 

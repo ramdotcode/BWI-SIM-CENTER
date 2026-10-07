@@ -324,7 +324,7 @@
     "secPkg": "Package",
     "pkgMeta": "{h} h · {s} sessions × {slot} h",
     "secPref": "Schedule preference",
-    "secPrefHint": "— earliest date required (at least {n} days from now); full dates cannot be selected. Final schedule is set by admin",
+    "secPrefHint": "— earliest date required (tomorrow at the earliest); full dates cannot be selected. Final schedule is set by admin",
     "pref_date_from": "Earliest date",
     "pref_date_to": "Latest date",
     "pref_time": "Preferred time",
@@ -386,11 +386,13 @@
       "generic": "Invalid value",
       "expired": "Expired — please renew the certificate first",
       "past": "Choose a start date from tomorrow",
-      "minLead": "Earliest date must be at least {n} days from today"
+      "minLead": "Earliest date must be tomorrow or later"
     },
-    "payByNote": "Pick your earliest preferred date. Payment must be completed by the day before that date, so the earliest date is {n} days from now.",
+    "payByNote": "Pick your earliest preferred date. Payment must be completed by the day before that date — if you pick tomorrow, payment is due today.",
     "payByPicked": "Payment deadline: {date} (the day before your earliest date {start}). If unpaid by then, the invoice becomes overdue and scheduling cannot proceed.",
-    "rvPayBy": "Pay by {date}"
+    "rvPayBy": "Pay by {date}",
+    "payByToday": "Payment deadline: TODAY (the day before your earliest date {start}). Make sure your registration is verified and paid today; if unpaid, scheduling cannot proceed.",
+    "rvPayToday": "Pay by today"
   },
   "submitted": {
     "eyebrow": "Registration submitted",

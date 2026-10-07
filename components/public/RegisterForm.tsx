@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/lib/i18n/navigation";
 import { AUTHORITIES, ICAO_NEEDS_VALIDITY, icaoWarning, idDocKind, medicalWarning, NATIONALITIES, payByDate, POSITIONS, PREF_MIN_LEAD_DAYS, REQUIRED_DOCS, requiredDocs, step1Check, step2Check, step4, TYPE_RATINGS } from "@/lib/schemas";
-import { fmtDate, rupiah } from "@/lib/format";
+import { fmtDate, rupiah, todayJkt } from "@/lib/format";
 import { ACCEPT, api, fmtSize, uploadFile, type Uploaded } from "../upload";
 import { useToast } from "../Toast";
 import { DateSelect } from "./DateSelect";
@@ -332,12 +332,12 @@ export function RegisterForm({ packages, slotHours, uploadMaxMb, initialPkg, ini
             </div>
             <div className="fgrid">
               <div className="sect">
-                {t("secPref")} <span className="small muted" style={{ fontFamily: "var(--font)", fontWeight: 400 }}>{t("secPrefHint", { n: PREF_MIN_LEAD_DAYS })}</span>
+                {t("secPref")} <span className="small muted" style={{ fontFamily: "var(--font)", fontWeight: 400 }}>{t("secPrefHint")}</span>
               </div>
               <PrefCalendar sim={v.simulator as string} from={v.pref_date_from as string} to={v.pref_date_to as string} l={l} invalid={!!(errors.pref_date_from || errors.pref_date_to)} onChange={(a, b) => { setV((o) => ({ ...o, pref_date_from: a, pref_date_to: b })); setErrors((e) => ({ ...e, pref_date_from: "", pref_date_to: "" })); }} />
               {(errors.pref_date_from || errors.pref_date_to) && <span className="err full" style={{ gridColumn: "1/-1", color: "var(--bad)", fontSize: 12, fontWeight: 600 }}>{errors.pref_date_from || errors.pref_date_to}</span>}
               <div className="callout info full" style={{ gridColumn: "1/-1" }}>
-                {v.pref_date_from ? t("payByPicked", { date: fmtDate(payByDate(v.pref_date_from as string), l, { weekday: true }), start: fmtDate(v.pref_date_from as string, l) }) : t("payByNote", { n: PREF_MIN_LEAD_DAYS })}
+                {!v.pref_date_from ? t("payByNote") : payByDate(v.pref_date_from as string) <= todayJkt() ? t("payByToday", { start: fmtDate(v.pref_date_from as string, l) }) : t("payByPicked", { date: fmtDate(payByDate(v.pref_date_from as string), l, { weekday: true }), start: fmtDate(v.pref_date_from as string, l) })}
               </div>
               <F k="pref_time" err={errors.pref_time} label={t("pref_time")}>{sel("pref_time", ["MORNING", "AFTERNOON", "FLEXIBLE"], (o) => te(`prefTime.${o}` as "prefTime.MORNING"), false)}</F>
               <F k="notes" err={errors.notes} label={t("notes")} full><textarea {...inp("notes")} rows={3} maxLength={1000} /></F>
@@ -379,7 +379,7 @@ export function RegisterForm({ packages, slotHours, uploadMaxMb, initialPkg, ini
                   <div className="eyebrow">{t("rvTotal")}</div>
                   <div style={{ fontFamily: "var(--display)", fontSize: 32, color: "var(--teal-deep)" }}>{rupiah(pkg.price)}</div>
                   <div className="small muted">{t("rvPayNote")}</div>
-                  {v.pref_date_from && <div className="small" style={{ fontWeight: 600, color: "var(--teal-deep)" }}>{t("rvPayBy", { date: fmtDate(payByDate(v.pref_date_from as string), l) })}</div>}
+                  {v.pref_date_from && <div className="small" style={{ fontWeight: 600, color: "var(--teal-deep)" }}>{payByDate(v.pref_date_from as string) <= todayJkt() ? t("rvPayToday") : t("rvPayBy", { date: fmtDate(payByDate(v.pref_date_from as string), l) })}</div>}
                 </div>
               </div>
             </div>

@@ -324,7 +324,7 @@
     "secPkg": "Paket",
     "pkgMeta": "{h} jam · {s} sesi × {slot} jam",
     "secPref": "Preferensi jadwal",
-    "secPrefHint": "— wajib pilih tanggal awal (paling cepat {n} hari dari sekarang); tanggal penuh tidak bisa dipilih. Jadwal final ditetapkan admin",
+    "secPrefHint": "— wajib pilih tanggal awal (paling cepat besok); tanggal penuh tidak bisa dipilih. Jadwal final ditetapkan admin",
     "pref_date_from": "Tanggal paling awal",
     "pref_date_to": "Tanggal paling akhir",
     "pref_time": "Preferensi waktu",
@@ -386,11 +386,13 @@
       "generic": "Isian tidak valid",
       "expired": "Sudah tidak berlaku — perbarui sertifikat terlebih dahulu",
       "past": "Pilih tanggal mulai besok",
-      "minLead": "Tanggal awal paling cepat {n} hari dari hari ini"
+      "minLead": "Tanggal awal paling cepat besok"
     },
-    "payByNote": "Pilih tanggal awal preferensi. Pembayaran wajib lunas paling lambat H-1 sebelum tanggal awal tersebut, jadi tanggal paling cepat {n} hari dari sekarang.",
+    "payByNote": "Pilih tanggal awal preferensi. Pembayaran wajib lunas paling lambat H-1 sebelum tanggal awal tersebut — bila memilih besok, pembayaran harus lunas hari ini.",
     "payByPicked": "Batas pembayaran: {date} (H-1 sebelum tanggal awal {start}). Bila belum lunas, invoice lewat tempo dan jadwal tidak bisa diproses.",
-    "rvPayBy": "Bayar paling lambat {date}"
+    "rvPayBy": "Bayar paling lambat {date}",
+    "payByToday": "Batas pembayaran: HARI INI (H-1 sebelum tanggal awal {start}). Pastikan pendaftaran diverifikasi dan dibayar hari ini juga; bila belum lunas, jadwal tidak bisa diproses.",
+    "rvPayToday": "Bayar paling lambat hari ini"
   },
   "submitted": {
     "eyebrow": "Pendaftaran terkirim",

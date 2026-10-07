@@ -117,7 +117,7 @@ Kelola jadwal → klik sesi mendatang → **Ganti instruktur**: pilih instruktur
 | Masukan | Implementasi |
 |---|---|
 | Hapus "Tujuan sesi" di langkah Paket & jadwal | Field dihapus dari form & kolom Excel "Tujuan" (kolom DB `purpose` dibiarkan, data lama tetap). |
-| Jatuh tempo = H-1 awal preferensi | Tanggal awal preferensi **wajib**, paling cepat H+3 (`PREF_MIN_LEAD_DAYS`); kalender hanya bisa dipilih mulai H+3. Form menampilkan "Batas pembayaran: H-1". Invoice baru: `due_at` = 23:59 WIB H-1 tanggal awal (bila sudah lewat saat disetujui → akhir hari itu); data lama tanpa preferensi → `invoice_due_days`. |
+| Jatuh tempo = H-1 awal preferensi | Tanggal awal preferensi **wajib**, paling cepat **besok** (`PREF_MIN_LEAD_DAYS` = 1; pilih besok → bayar hari ini). Form menampilkan "Batas pembayaran: H-1". Invoice baru: `due_at` = 23:59 WIB H-1 tanggal awal (bila sudah lewat saat disetujui → akhir hari itu); data lama tanpa preferensi → `invoice_due_days`. |
 | Tandai lunas wajib unggah file | `markPaid` menolak bila tidak ada bukti transfer (unggah baru atau dari konfirmasi WA). |
 | Hapus "FTD" | Kartu simulator di form, Mode Layar, dashboard peserta, email jadwal & undangan kalender, dan invoice (PDF & web). |
 | Invoice lewat tempo: terbit ulang & lunas khusus SA | OVERDUE/EXPIRED: hanya Super Admin yang bisa **Tandai lunas** (EXPIRED langsung dihidupkan & lunas), **Konfirmasi WA**, dan **Terbitkan ulang (invoice telat)** dengan jatuh tempo baru pilihan SA (nomor tetap, dikirim ulang). Admin biasa: "Khusus Super Admin". |
