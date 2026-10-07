@@ -46,9 +46,10 @@ export function InvoiceActions({ inv, dueDays, isSA, hasProof }: { inv: InvRow; 
   const [menu, setMenu] = useState(false);
   // Menu dirender position:fixed agar tidak terpotong oleh .tbl (overflow-x:auto).
   const [pos, setPos] = useState<{ top: number | "auto"; bottom: number | "auto"; right: number }>({ top: 0, bottom: "auto", right: 0 });
-  // Lewat tempo/kedaluwarsa: hanya Super Admin yang bisa melunasi / menerbitkan ulang (masukan klien Okt 2026).
+  // Lewat tempo/kedaluwarsa (masukan klien Okt 2026): tanpa tombol di baris; di menu ⋯ ada "Kirim ulang invoice"
+  // & "Tandai lunas". Hanya Super Admin; wajib kirim ulang (jatuh tempo baru) dulu, baru bisa ditandai lunas.
   const late = ["OVERDUE", "EXPIRED"].includes(inv.status);
-  const payable = ["UNPAID", "AWAITING_VERIFICATION", "OVERDUE", "EXPIRED"].includes(inv.status) && (!late || isSA);
+  const payable = ["UNPAID", "AWAITING_VERIFICATION"].includes(inv.status);
   const [modal, setModal] = useState<null | "paid" | "wa" | "react" | "cancel">(inv.open && payable ? "paid" : null);
   const [newDue, setNewDue] = useState(() => { const d = new Date(Date.now() + 7 * 3600_000 + dueDays * 86400_000); return d.toISOString().slice(0, 10); });
   const [busy, setBusy] = useState(false);
@@ -95,7 +96,7 @@ export function InvoiceActions({ inv, dueDays, isSA, hasProof }: { inv: InvRow; 
     }
     setBusy(false);
   };
-  const open = payable && inv.status !== "EXPIRED";
+  const open = payable;
   const diff = Number(amount || 0) - inv.total;
   const followText = t("followText", { name: inv.name, no: inv.no, total: rupiah(inv.total), due: fmtDate(new Date(new Date(inv.due).getTime() + 7 * 3600_000), l) });
   const followHref = `https://wa.me/${inv.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(followText)}`;
@@ -103,9 +104,12 @@ export function InvoiceActions({ inv, dueDays, isSA, hasProof }: { inv: InvRow; 
     <button className="btn xs ok" onClick={() => setModal("paid")}>{t("markPaid")}</button>
   ) : inv.status === "PAID" && ["PAID", "SCHEDULED", "IN_PROGRESS"].includes(inv.reg_status) ? (
     <a className="btn xs ghost" href={`${l === "en" ? "/en" : ""}/admin/jadwal?reg=${inv.reg_id}`}>{t("schedule")}</a>
-  ) : late ? (
-    <span className="small faint" title={t("saOnlyLate")}>{t("saOnlyShort")}</span>
   ) : null;
+  const lateAction = (fn: () => void) => () => {
+    setMenu(false);
+    if (!isSA) return toast(t("saOnlyLate"));
+    fn();
+  };
 
   return (
     <div className="row" style={{ gap: 6, justifyContent: "flex-end" }}>
@@ -116,9 +120,10 @@ export function InvoiceActions({ inv, dueDays, isSA, hasProof }: { inv: InvRow; 
           <div className="pop" role="menu" style={{ position: "fixed", ...pos }}>
             {payable && <button onClick={() => { setModal("paid"); setMenu(false); }}>{t("markPaid")}</button>}
             {open && <button onClick={() => { setModal("wa"); setMenu(false); }}>{t("confirmWa")}</button>}
-            {inv.status !== "CANCELLED" && inv.status !== "EXPIRED" && <button onClick={() => run(async () => { await api(`/api/admin/invoices/${inv.id}/resend`, { body: {} }); return t("toastResent"); })}>{t("resend")}</button>}
+            {!late && inv.status !== "CANCELLED" && <button onClick={() => run(async () => { await api(`/api/admin/invoices/${inv.id}/resend`, { body: {} }); return t("toastResent"); })}>{t("resend")}</button>}
             {open && <a href={followHref} target="_blank" rel="noopener noreferrer">{t("followUp")}</a>}
-            {late && isSA && <button onClick={() => { setModal("react"); setMenu(false); }}>{t("reactivate")}</button>}
+            {late && <button onClick={lateAction(() => setModal("react"))}>{t("reactivate")}</button>}
+            {late && <button onClick={lateAction(() => toast(t("reissueFirst")))}>{t("markPaid")}</button>}
             <a href={`/api/admin/invoices/${inv.id}/pdf`} target="_blank" rel="noopener noreferrer">{t("pdf")}</a>
             {inv.status !== "CANCELLED" && inv.reg_status !== "COMPLETED" && (
               <>
@@ -150,7 +155,6 @@ export function InvoiceActions({ inv, dueDays, isSA, hasProof }: { inv: InvRow; 
             <label className="row small"><input type="checkbox" checked={accept} onChange={(e) => setAccept(e.target.checked)} />{t("acceptDiff")}</label>
           </>
         )}
-        {late && <div className="banner warn">{inv.status === "EXPIRED" ? t("lateExpiredNote") : t("lateOverdueNote")}</div>}
         <Proof kind="PAYMENT_PROOF" onDone={setProof} label={hasProof ? t("proofHave") : t("proofReq")} />
         <label className="field"><span className="flabel">{t("note")}</span><input className="in" value={note} onChange={(e) => setNote(e.target.value)} /></label>
       </Modal>

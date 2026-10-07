@@ -66,22 +66,12 @@ export async function confirmWa(id: number, admin: AdminCtx, opts: { at?: string
  */
 export async function markPaid(id: number, admin: AdminCtx, opts: { amount: number; paid_at: string; proof_key?: string; note?: string; accept_difference?: boolean }) {
   const res = await db.$transaction(async (tx) => {
-    let inv = await getInv(tx, id);
+    const inv = await getInv(tx, id);
     // Lewat tempo / kedaluwarsa: hanya Super Admin (masukan klien Okt 2026).
-    if (["OVERDUE", "EXPIRED"].includes(inv.status) && admin.role !== "SUPER_ADMIN") throw new HttpError(403, "Invoice lewat tempo hanya bisa diproses Super Admin", "forbidden");
+    // Lewat tempo/kedaluwarsa: Super Admin wajib "Kirim ulang invoice" (jatuh tempo baru) dulu, baru tandai lunas.
+    if (["OVERDUE", "EXPIRED"].includes(inv.status)) throw new HttpError(409, admin.role === "SUPER_ADMIN" ? "Kirim ulang invoice (jatuh tempo baru) terlebih dahulu, baru tandai lunas" : "Invoice lewat tempo hanya bisa diproses Super Admin", "reissue_first");
     // Tandai lunas wajib ada bukti transfer (diunggah sekarang atau dari konfirmasi WA sebelumnya).
     if (!opts.proof_key && !inv.proof_storage_key) throw new HttpError(422, "Unggah bukti transfer terlebih dahulu", "proof_required");
-    if (inv.status === "EXPIRED") {
-      // SA melunasi invoice kedaluwarsa langsung: hidupkan kembali (EXPIRED → UNPAID, REG → PENDING_PAYMENT) lalu proses seperti biasa.
-      assertInvoice("EXPIRED", "UNPAID");
-      await tx.invoice.update({ where: { id }, data: { status: "UNPAID" } });
-      if (inv.registration.status === "EXPIRED") {
-        assertReg("EXPIRED", "PENDING_PAYMENT");
-        await tx.registration.update({ where: { id: inv.registration_id }, data: { status: "PENDING_PAYMENT" } });
-      }
-      await logActivity({ type: "ADMIN", id: admin.id }, "invoice.revived_for_payment", "invoice", id, { invoice_no: inv.invoice_no }, tx);
-      inv = await getInv(tx, id);
-    }
     const amount = BigInt(Math.round(opts.amount));
     const paidAt = new Date(`${opts.paid_at}T12:00:00+07:00`);
     const matches = amount === inv.total;
