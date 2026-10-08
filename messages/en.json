@@ -1020,7 +1020,10 @@
       "noshow": "No-show",
       "maint": "Maintenance",
       "block": "Blocked"
-    }
+    },
+    "secProgram": "Program",
+    "secInstructor": "Instructor",
+    "secStudent": "Student"
   },
   "accountsDisplay": {
     "tab": "TV screens",

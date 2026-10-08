@@ -559,3 +559,21 @@ th.sticky-col{background:var(--teal-tint);z-index:2}
 .disp .next th{font-size:.95em}
 }
 
+@layer components {
+/* Layar TV: sesi terisi dibagi 3 bagian — Program, Instruktur, Siswa */
+.disp .dc .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.25em .9em;margin-top:.2em}
+.disp .dc .trio > div{display:flex;flex-direction:column;min-width:0;border-left:2px solid rgba(11,59,72,.18);padding-left:.5em}
+.disp .dc .trio .lb{font-family:var(--mono);font-size:.62em;letter-spacing:.08em;text-transform:uppercase;opacity:.7}
+.disp .dc .trio .vl{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+.disp .dc .trio .vl.nm{font-family:var(--display);font-weight:700}
+.disp .dc.big .trio .lb{font-size:.7em}
+.disp .dc.big .trio .vl{font-size:1.15em}
+.disp .dc.big .trio .vl.nm{font-size:1.45em}
+.disp .next .dc .trio{grid-template-columns:1fr;gap:.12em}
+.disp .next .dc .trio > div{flex-direction:row;align-items:baseline;gap:.45em;border-left:0;padding-left:0}
+.disp .next .dc .trio .lb{flex:none;width:7em;font-size:.72em}
+.disp .next .dc .trio .vl{font-size:1.1em}
+.disp .next .dc .trio .vl.nm{font-size:1.3em}
+.disp .dc.live .trio > div{border-left-color:rgba(255,255,255,.35)}
+}
+

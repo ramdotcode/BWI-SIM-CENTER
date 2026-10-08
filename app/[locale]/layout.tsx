@@ -14,7 +14,7 @@ const plex = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], 
 export const metadata: Metadata = {
   title: { default: "BWI Sim Center", template: "%s · BWI Sim Center" },
   description: "Sewa sesi Flight Training Device Airbus A320 & Boeing 737NG — PT BWI Aviation × PPI Curug.",
-  icons: { icon: "/brand/ppi-curug.png" },
+  icons: { icon: "/brand/favicon.png", apple: "/brand/apple-icon.png" },
 };
 
 export function generateStaticParams() {

@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "../db";
 import { getSettings, isWorkDay, slotStarts } from "../settings";
-import { addDays, dateOnly, shortName, todayJkt, wibInstant, ymd } from "../format";
+import { addDays, dateOnly, todayJkt, wibInstant, ymd } from "../format";
 import { ensureSlots } from "./slots";
 
 export type DisplayCellStatus = "free" | "past" | "busy" | "live" | "done" | "noshow" | "maint" | "block";
@@ -41,7 +41,7 @@ export async function displayBoard(showNames = true, upcoming = 3) {
     if (!sl || sl.status === "AVAILABLE" || sl.status === "CANCELLED") return { st: started ? "past" : "free" };
     if (sl.status === "MAINTENANCE") return { st: sl.block_kind === "OTHER" ? "block" : "maint", reason: showNames ? sl.maintenance_reason : null };
     const who = showNames && sl.registration
-      ? { name: shortName(sl.registration.participant.full_name), instructor: sl.instructor?.name ?? null, pkg: sl.registration.package.short_id }
+      ? { name: sl.registration.participant.full_name, instructor: sl.instructor?.name ?? null, pkg: sl.registration.package.short_id }
       : {};
     if (sl.status === "COMPLETED") return { st: "done", ...who };
     if (sl.status === "NO_SHOW") return { st: "noshow", ...who };

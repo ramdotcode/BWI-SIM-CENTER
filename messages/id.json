@@ -1020,7 +1020,10 @@
       "noshow": "Tidak hadir",
       "maint": "Maintenance",
       "block": "Diblok"
-    }
+    },
+    "secProgram": "Program",
+    "secInstructor": "Instruktur",
+    "secStudent": "Siswa"
   },
   "accountsDisplay": {
     "tab": "Layar TV",

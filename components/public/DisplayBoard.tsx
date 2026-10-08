@@ -98,11 +98,17 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
   }
 
   // Sel besar (hari ini): status + nama. Sel ringkas (hari berikutnya): nama ATAU status — warna sel sudah menandai status.
+  // Sesi terisi dibagi 3 bagian berlabel: Program, Instruktur, Siswa (masukan klien Okt 2026).
   const Cell = ({ c, big }: { c: DisplayCell; big?: boolean }) => (
     <div className={`dc ${c.st} ${big ? "big" : ""}`} title={t(`st.${c.st}`)}>
       {(big || !c.name) && <span className="st">{t(`st.${c.st}`)}</span>}
-      {c.name && <span className="nm">{c.name}</span>}
-      {(c.instructor || c.pkg) && <span className="sub">{[c.pkg, c.instructor].filter(Boolean).join(" · ")}</span>}
+      {c.name ? (
+        <div className="trio">
+          <div><span className="lb">{t("secProgram")}</span><span className="vl">{c.pkg ?? "—"}</span></div>
+          <div><span className="lb">{t("secInstructor")}</span><span className="vl">{c.instructor ?? "—"}</span></div>
+          <div><span className="lb">{t("secStudent")}</span><span className="vl nm">{c.name}</span></div>
+        </div>
+      ) : null}
       {c.reason && <span className="sub">{c.reason}</span>}
     </div>
   );
