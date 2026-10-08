@@ -1023,7 +1023,14 @@
     },
     "secProgram": "Program",
     "secInstructor": "Instructor",
-    "secStudent": "Student"
+    "secStudent": "Student",
+    "welcome": "Welcome to BWI Sim Center",
+    "scheduleTitle": "Training Schedule",
+    "colSim": "Simulator",
+    "colTime": "Time",
+    "colStatus": "Status",
+    "sessionsFilled": "{n} of {total} sessions booked",
+    "closedDay": "The simulator does not operate on this day"
   },
   "accountsDisplay": {
     "tab": "TV screens",

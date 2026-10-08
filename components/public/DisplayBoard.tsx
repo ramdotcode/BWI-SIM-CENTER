@@ -37,6 +37,29 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
   }, [token]);
   const ago = useAgo(last);
 
+  // Pas satu layar di TV mana pun: bila isi lebih tinggi dari layar, perkecil (CSS zoom) sampai muat.
+  const rootRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const fit = () => {
+      const el = rootRef.current;
+      if (!el) return;
+      el.style.zoom = "1";
+      el.style.width = "";
+      el.style.minHeight = "";
+      const ratio = window.innerHeight / el.scrollHeight;
+      if (ratio >= 1) return;
+      const z = Math.max(0.5, ratio - 0.005);
+      el.style.zoom = String(z);
+      // Lebar & tinggi dikompensasi agar setelah diperkecil tetap memenuhi layar.
+      el.style.width = `${window.innerWidth / z}px`;
+      el.style.minHeight = `${window.innerHeight / z}px`;
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [b, full]);
+
+
   useEffect(() => {
     const clock = setInterval(() => setNow(new Date()), 1000);
     const periodic = setInterval(refetch, REFRESH_MS);
@@ -85,7 +108,6 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
     return `${dayShort(d.getUTCDay(), l)}, ${d.getUTCDate()} ${monthShort(d.getUTCMonth(), l)}${long ? ` ${d.getUTCFullYear()}` : ""}`;
   };
   const today = b.days[0]!;
-  const upcoming = b.days.slice(1);
 
   if (revoked) {
     return (
@@ -97,11 +119,15 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
     );
   }
 
-  // Sel besar (hari ini): status + nama. Sel ringkas (hari berikutnya): nama ATAU status — warna sel sudah menandai status.
-  // Sesi terisi dibagi 3 bagian berlabel: Program, Instruktur, Siswa (masukan klien Okt 2026).
-  const Cell = ({ c, big }: { c: DisplayCell; big?: boolean }) => (
-    <div className={`dc ${c.st} ${big ? "big" : ""}`} title={t(`st.${c.st}`)}>
-      {(big || !c.name) && <span className="st">{t(`st.${c.st}`)}</span>}
+  // Tata letak (masukan klien Okt 2026, referensi papan jadwal pelatihan):
+  // atas = tabel "Hari ini" (Simulator · Jam · Program · Instruktur · Siswa · Status), tetap;
+  // bawah = kotak 3 hari kerja berikutnya (simulator × sesi di kiri, tanggal ke kanan), tidak bergantian.
+  const day = today;
+  const upcoming = b.days.slice(1);
+  const busyCount = (code: string) => b.times.filter((tm) => day.cells[code]?.[tm.start]?.name).length;
+  const Box = ({ c }: { c: DisplayCell }) => (
+    <div className={`dc ${c.st}`} title={t(`st.${c.st}`)}>
+      <span className="st">{t(`st.${c.st}`)}</span>
       {c.name ? (
         <div className="trio">
           <div><span className="lb">{t("secProgram")}</span><span className="vl">{c.pkg ?? "—"}</span></div>
@@ -114,52 +140,74 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
   );
 
   return (
-    <div className="disp">
-      <header className="dh">
-        <div className="row" style={{ gap: 18 }}>
+    <div className="disp tvx" ref={rootRef}>
+      <header className="tvh">
+        <div className="tvh-l">
           <img src="/brand/bwi-aviation.png" alt="BWI Aviation" className="lg" />
           <img src="/brand/ppi-curug.png" alt="PPI Curug" className="lg2" />
-          <div>
-            <div className="ttl">{t("title")}</div>
-            <div className="dt">{dayLabel(b.today, true)}{label ? ` · ${label}` : ""}</div>
-          </div>
         </div>
-        <div className="row dh-r" style={{ gap: 22 }}>
-          <span className="live">{t("live")}</span>
+        <div className="tvh-c">
+          <div className="w1">{t("welcome")}</div>
+          <div className="w2">{t("scheduleTitle")}</div>
+        </div>
+        <div className="tvh-r">
           <span className="clk" suppressHydrationWarning>{clock}</span>
+          <span className="dt">{dayLabel(b.today, true)}{label ? ` · ${label}` : ""}</span>
           {!full && canFull && <button type="button" className="btn sm fsbtn" onClick={goFull}>⛶ {t("fullscreen")}</button>}
         </div>
       </header>
 
-      <main className="dm">
-        <section className="today">
-          <div className="sect-h">{t("today")}</div>
-          {today.closed ? (
-            <div className="closed">{t("closedToday")}</div>
-          ) : (
-            <div className="sims" style={{ gridTemplateColumns: `repeat(${b.sims.length}, minmax(0,1fr))` }}>
-              {b.sims.map((sim) => (
-                <div key={sim.code} className={`simcol ${sim.code.toLowerCase()}`}>
-                  <div className="simh">
-                    <b>{sim.name}</b>
-                    <span>{sim.bay}</span>
-                  </div>
-                  {b.times.map((tm) => (
-                    <div key={tm.start} className="srow">
-                      <div className="tm">{fmtTime(tm.start, l)}<small>–{fmtTime(tm.end, l)}</small></div>
-                      <Cell c={today.cells[sim.code]?.[tm.start] ?? { st: "free" }} big />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
+      <main className="tvm">
+        <div className="tvsec">{t("today")} · {dayLabel(b.today)}</div>
+        {day.closed ? (
+          <div className="closed">{t("closedToday")}</div>
+        ) : (
+          <table className="tvt">
+            <thead>
+              <tr>
+                <th className="c-sim">{t("colSim")}<small>Device</small></th>
+                <th className="c-tm">{t("colTime")}<small>Time</small></th>
+                <th>{t("secProgram")}<small>Training programme</small></th>
+                <th>{t("secInstructor")}<small>Instructor</small></th>
+                <th>{t("secStudent")}<small>Trainee</small></th>
+                <th className="c-st">{t("colStatus")}<small>Status</small></th>
+              </tr>
+            </thead>
+            {b.sims.map((sim) => (
+              <tbody key={sim.code} className={sim.code.toLowerCase()}>
+                <tr className="grp">
+                  <td colSpan={6}>
+                    <b>{sim.name}</b> <span>{sim.bay}</span>
+                    <em>{t("sessionsFilled", { n: busyCount(sim.code), total: b.times.length })}</em>
+                  </td>
+                </tr>
+                {b.times.map((tm, i) => {
+                  const c: DisplayCell = day.cells[sim.code]?.[tm.start] ?? { st: "free" };
+                  return (
+                    <tr key={tm.start} className={`r ${c.st}`}>
+                      {i === 0 && <td className="c-sim" rowSpan={b.times.length}><span className={`chip ${sim.code.toLowerCase()}`}>{sim.code}</span></td>}
+                      <td className="c-tm">{fmtTime(tm.start, l)}<small>–{fmtTime(tm.end, l)}</small></td>
+                      {c.name ? (
+                        <>
+                          <td className="v">{c.pkg ?? "—"}</td>
+                          <td className="v">{c.instructor ?? "—"}</td>
+                          <td className="v nm">{c.name}</td>
+                        </>
+                      ) : (
+                        <td colSpan={3} className="empty">{c.reason ? `${t(`st.${c.st}`)} · ${c.reason}` : t(`st.${c.st}`)}</td>
+                      )}
+                      <td className="c-st"><span className={`stp ${c.st}`}>{t(`st.${c.st}`)}</span></td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            ))}
+          </table>
+        )}
 
         {upcoming.length > 0 && (
           <section className="next">
-            <div className="sect-h">{t("upcoming")}</div>
-            {/* CR-05: simulator × sesi di kiri (baris), tanggal ke kanan (kolom). */}
+            <div className="tvsec">{t("upcoming")}</div>
             <table>
               <thead>
                 <tr>
@@ -174,7 +222,7 @@ export function DisplayBoard({ token, initial, label }: { token: string; initial
                     <tr key={`${sim.code}${tm.start}`} className={i === 0 ? "first" : ""}>
                       {i === 0 && <td className={`simc ${sim.code.toLowerCase()}`} rowSpan={b.times.length}>{sim.code}</td>}
                       <td className="tmc">{fmtTime(tm.start, l)}<small>–{fmtTime(tm.end, l)}</small></td>
-                      {upcoming.map((d) => <td key={d.date}><Cell c={d.cells[sim.code]?.[tm.start] ?? { st: "free" }} /></td>)}
+                      {upcoming.map((d) => <td key={d.date}><Box c={d.cells[sim.code]?.[tm.start] ?? { st: "free" }} /></td>)}
                     </tr>
                   )),
                 )}

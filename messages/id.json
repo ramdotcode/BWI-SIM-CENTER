@@ -1023,7 +1023,14 @@
     },
     "secProgram": "Program",
     "secInstructor": "Instruktur",
-    "secStudent": "Siswa"
+    "secStudent": "Siswa",
+    "welcome": "Selamat Datang di BWI Sim Center",
+    "scheduleTitle": "Jadwal Latihan · Training Schedule",
+    "colSim": "Simulator",
+    "colTime": "Jam",
+    "colStatus": "Status",
+    "sessionsFilled": "{n} dari {total} sesi terisi",
+    "closedDay": "Simulator tidak beroperasi pada hari ini"
   },
   "accountsDisplay": {
     "tab": "Layar TV",
