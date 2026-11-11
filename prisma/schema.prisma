@@ -305,7 +305,7 @@ model Document {
 // Unggahan sementara (sebelum form dikirim). Dibersihkan job.
 model PendingUpload {
   id            String       @id
-  kind          String       // DocumentKind | PAYMENT_PROOF | REFUND_PROOF | SESSION_REPORT
+  kind          String       // DocumentKind | PAYMENT_PROOF | REFUND_PROOF | SESSION_REPORT | EXPENSE_RECEIPT
   storage_key   String
   original_name String
   mime          String
@@ -465,4 +465,25 @@ model Counter {
   value Int    @default(0)
 
   @@map("counters")
+}
+
+// ---------- Keuangan: pengeluaran (revisi klien Nov 2026, poin 10) ----------
+// Dicatat manual oleh Super Admin. Kategori = teks (daftar pilihan di setting `expense_categories`),
+// disimpan apa adanya supaya mengganti nama kategori tidak mengubah catatan lama.
+model Expense {
+  id           Int      @id @default(autoincrement())
+  spent_on     DateTime @db.Date // tanggal pengeluaran (WIB)
+  category     String
+  description  String
+  payee        String? // dibayar ke (opsional)
+  amount       BigInt
+  receipt_key  String? // lampiran nota/kuitansi (opsional), storage key
+  receipt_name String?
+  created_by   Int?
+  updated_by   Int?
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+
+  @@index([spent_on])
+  @@map("expenses")
 }

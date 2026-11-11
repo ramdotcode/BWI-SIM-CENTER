@@ -84,9 +84,13 @@ export async function financeData(year: number) {
   };
 }
 
-async function availableYears() {
-  const first = await db.invoice.findFirst({ orderBy: { issued_at: "asc" }, select: { issued_at: true } });
+/** Tahun yang bisa dipilih: sejak invoice atau pengeluaran pertama s/d tahun ini. */
+export async function availableYears() {
+  const [first, firstExp] = await Promise.all([
+    db.invoice.findFirst({ orderBy: { issued_at: "asc" }, select: { issued_at: true } }),
+    db.expense.findFirst({ orderBy: { spent_on: "asc" }, select: { spent_on: true } }),
+  ]);
   const cur = Number(todayJkt().slice(0, 4));
-  const start = first ? yearOf(first.issued_at) : cur;
+  const start = Math.min(first ? yearOf(first.issued_at) : cur, firstExp ? firstExp.spent_on.getUTCFullYear() : cur);
   return Array.from({ length: cur - start + 1 }, (_, i) => cur - i);
 }

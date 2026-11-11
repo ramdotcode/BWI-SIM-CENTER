@@ -17,6 +17,7 @@ export const POST = handler(async (req: Request) => {
       const n = Number(v);
       if (!Number.isFinite(n) || n < 0) throw new HttpError(422, `${k}: angka tidak valid`);
       if (k === "upload_max_mb" && (n < 1 || n > 20)) throw new HttpError(422, "Batas ukuran file harus 1–20 MB");
+      if (k === "income_tax_percent" && n > 100) throw new HttpError(422, "Persen pajak maksimal 100");
       patch[k] = n;
     } else if (m.type === "boolean") patch[k] = !!v;
     else if (m.type === "time") {
@@ -39,7 +40,10 @@ export const POST = handler(async (req: Request) => {
       const days = [...new Set((Array.isArray(v) ? v : String(v).split(",")).map(Number))].filter((x) => Number.isInteger(x) && x >= 1 && x <= 7).sort();
       if (!days.length) throw new HttpError(422, `${k}: pilih minimal 1 hari`);
       patch[k] = days;
-    } else if (m.type === "list") patch[k] = (Array.isArray(v) ? v : String(v).split(",")).map((x) => String(x).trim()).filter(Boolean);
+    } else if (m.type === "list") {
+      patch[k] = [...new Set((Array.isArray(v) ? v : String(v).split(",")).map((x) => String(x).trim()).filter(Boolean))];
+      if (k === "expense_categories" && !(patch[k] as string[]).length) throw new HttpError(422, "Isi minimal 1 kategori pengeluaran");
+    }
     else patch[k] = String(v).trim();
   }
   const cur = await getSettings(true);

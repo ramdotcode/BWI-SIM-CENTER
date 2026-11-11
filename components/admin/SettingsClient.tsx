@@ -17,7 +17,7 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
   const router = useRouter();
   const [v, setV] = useState<Record<string, unknown>>(values);
   const [busy, setBusy] = useState(false);
-  const GROUPS = ["ops", "billing", "notify", "access", "general"];
+  const GROUPS = ["ops", "billing", "finance", "notify", "access", "general"];
   const shown = (m: Meta, adv: boolean) => !m.hidden && !!m.advanced === adv;
   // Kelompok tanpa isi yang tampil (mis. "Umum") tidak ditampilkan.
   const groupsFor = (adv: boolean) => GROUPS.filter((g) => Object.values(meta).some((m) => m.group === g && shown(m, adv)));
@@ -90,7 +90,7 @@ export function SettingsForm({ values, meta }: { values: Record<string, unknown>
                   ) : m.type === "list" ? (
                     <input className="in" value={(v[k] as string[]).join(", ")} onChange={(e) => setV({ ...v, [k]: e.target.value.split(",").map((x) => x.trim()) })} />
                   ) : (
-                    <input className={`in ${m.type === "number" || m.type === "time" ? "mono" : ""}`} type={m.type === "time" ? "time" : "text"} inputMode={m.type === "number" ? "numeric" : undefined} value={String(v[k] ?? "")} onChange={(e) => setV({ ...v, [k]: m.type === "number" ? e.target.value.replace(/[^\d.]/g, "") : e.target.value })} />
+                    <input className={`in ${m.type === "number" || m.type === "time" ? "mono" : ""}`} type={m.type === "time" ? "time" : "text"} inputMode={m.type === "number" ? "numeric" : undefined} value={String(v[k] ?? "")} onChange={(e) => setV({ ...v, [k]: m.type === "number" ? e.target.value.replace(",", ".").replace(/[^\d.]/g, "") : e.target.value })} />
                   )}
                   {t.has(`hints.${k}` as "hints.session_times") && <span className="hint">{t(`hints.${k}` as "hints.session_times")}</span>}
                 </Field>

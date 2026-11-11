@@ -40,6 +40,10 @@ export const SETTING_DEFAULTS = {
   contact_email: "business@bwiaviation.com", // ditampilkan di invoice (bukan alamat pengirim email)
   location_name: "Sim Center BWI × PPI Curug, Tangerang",
   office_hours: "08.00–17.00 WIB",
+  // Keuangan: pengeluaran & laba rugi (revisi klien Nov 2026, poin 10)
+  expense_categories: ["Gaji instruktur", "Gaji staf", "Sewa & utilitas", "Maintenance simulator", "Operasional", "Pemasaran", "Lainnya"] as string[],
+  income_tax_percent: 0, // pajak penghasilan di laporan laba rugi (%); 0 = tidak dihitung
+  income_tax_base: "PROFIT" as "PROFIT" | "REVENUE", // dasar pajak: laba sebelum pajak, atau omzet (mis. PPh final 0,5%)
 };
 
 export type SettingKey = keyof typeof SETTING_DEFAULTS;
@@ -83,6 +87,9 @@ export const SETTING_META: Record<SettingKey, { type: "number" | "string" | "boo
   document_retention_days: { type: "number", group: "access" },
   upload_max_mb: { type: "number", group: "access" },
   default_locale: { type: "enum", group: "general", q: "Q10", options: ["id", "en"], hidden: true },
+  expense_categories: { type: "list", group: "finance" },
+  income_tax_percent: { type: "number", group: "finance" },
+  income_tax_base: { type: "enum", group: "finance", options: ["PROFIT", "REVENUE"] },
 };
 
 const g = globalThis as unknown as { __settings?: { at: number; v: Settings } };

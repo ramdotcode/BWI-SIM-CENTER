@@ -830,7 +830,7 @@
       "cannotSelf": "You cannot deactivate / demote your own account."
     },
     "finance": {
-      "title": "Financial Summary",
+      "title": "Finance",
       "period": "Period",
       "export": "⤓ Export Excel",
       "kpiYtd": "Revenue YTD",
@@ -855,7 +855,61 @@
       "colAmount": "Amount",
       "colVerifier": "Verifier",
       "colProof": "Receipt",
-      "refund": "refund"
+      "refund": "refund",
+      "tabIncome": "Income",
+      "tabExpense": "Expenses",
+      "tabProfit": "Combined · Profit & loss",
+      "month": "Month",
+      "allMonths": "All",
+      "category": "Category",
+      "allCategories": "All",
+      "expKpiYtd": "Total expenses {year}",
+      "expKpiYtdD": "{n} expense records",
+      "expKpiMonthD": "Expenses this month",
+      "expKpiTop": "Largest category",
+      "expKpiTopD": "{pct}% of total · {amount}",
+      "expKpiRatio": "Expenses ÷ income",
+      "expKpiRatioD": "Of this year's net income",
+      "expChart": "Expenses per month",
+      "expByCat": "By category",
+      "expList": "Expense list",
+      "expListD": "{n} records · total Rp {total}",
+      "expEmpty": "No expenses recorded yet",
+      "expAdd": "＋ Record expense",
+      "expEdit": "Edit expense",
+      "expDelete": "Delete expense",
+      "expDeleteQ": "Delete \"{desc}\" (Rp {amount}, {date})? This cannot be undone; its details stay in the activity log.",
+      "expToastAdded": "Expense recorded",
+      "expToastUpdated": "Expense updated",
+      "expToastDeleted": "Expense deleted",
+      "expCatHint": "Categories are managed in Settings → Finance",
+      "expDescPh": "e.g. Simulator room AC service",
+      "expReceiptHint": "Photo/PDF of the receipt (optional)",
+      "expHaveReceipt": "Attachment: {name}",
+      "expRemoveReceipt": "remove attachment",
+      "colDate": "Date",
+      "colDesc": "Description",
+      "colPayee": "Paid to",
+      "colAmountRp": "Amount (Rp)",
+      "colReceipt": "Receipt",
+      "colBy": "Recorded by",
+      "plRevenue": "Net income",
+      "plRevenueD": "Paid invoices minus refunds",
+      "plExpense": "Expenses",
+      "plExpenseD": "All categories",
+      "plProfit": "Profit before tax",
+      "plMargin": "{pct}% margin on income",
+      "plAfter": "Profit after tax",
+      "plTax": "Tax",
+      "plMarginCol": "Margin",
+      "plChart": "Income vs expenses per month",
+      "plTable": "Profit & loss {year}",
+      "plTotal": "Total {year}",
+      "taxOff": "Tax not set (0%)",
+      "taxOnProfit": "Tax {pct}% of profit",
+      "taxOnRevenue": "Tax {pct}% of income",
+      "taxSettings": "set tax",
+      "taxAnnualNote": "Annual tax is calculated on the full-year profit (a loss in one month offsets profit in others), so it can differ from the sum of monthly tax."
     },
     "db": {
       "title": "Participant Database",
@@ -879,7 +933,8 @@
         "billing": "Invoices & payments",
         "notify": "Notifications",
         "access": "Access & data",
-        "general": "General"
+        "general": "General",
+        "finance": "Finance"
       },
       "saved": "Settings saved",
       "addPackage": "＋ Package",
@@ -935,7 +990,10 @@
         "reupload_manual_threshold": "Flag for manual contact after N re-uploads",
         "document_retention_days": "Auto-delete participant documents after (days)",
         "upload_max_mb": "Max size per uploaded file (MB)",
-        "default_locale": "Default public language"
+        "default_locale": "Default public language",
+        "expense_categories": "Expense categories (comma-separated)",
+        "income_tax_percent": "Income tax in profit & loss (%)",
+        "income_tax_base": "Tax base"
       },
       "sessions": "Sessions",
       "hoursShort": "{h} h",
@@ -944,7 +1002,9 @@
       "advancedHint": "rarely needs changing; change only if you understand the impact",
       "opt": {
         "HOURS_FORFEITED": "Hours forfeited",
-        "HOURS_RETURNED": "Hours returned (can be rescheduled)"
+        "HOURS_RETURNED": "Hours returned (can be rescheduled)",
+        "PROFIT": "Profit before tax",
+        "REVENUE": "Net income (revenue)"
       },
       "hints": {
         "session_times": "Start–end of each session, format 07:30-11:30, comma-separated. All sessions must be the same length. Empty slots that no longer match are removed; booked slots stay.",
@@ -975,7 +1035,10 @@
         "reupload_token_days": "How many days the document re-upload link (after rejection) stays valid.",
         "reupload_manual_threshold": "After N re-uploads, the applicant is flagged for manual contact.",
         "document_retention_days": "Counted from completed/cancelled/expired. Enter 0 = never delete.",
-        "upload_max_mb": "Per-file limit, 1–20 MB."
+        "upload_max_mb": "Per-file limit, 1–20 MB.",
+        "expense_categories": "Options when recording an expense. Renaming a category does not change existing records.",
+        "income_tax_percent": "0 = not calculated. E.g. 0.5 for a 0.5% final tax on revenue, or 22 for corporate tax on profit.",
+        "income_tax_base": "Used in Finance → Combined · Profit & loss and the \"Laba Rugi\" Excel sheet."
       }
     },
     "people": {

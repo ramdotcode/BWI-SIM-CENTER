@@ -6,6 +6,7 @@ import { COLUMNS, regInclude, type ColType } from "./columns";
 import { translator } from "./i18n/server";
 import { fmtDateTime, monthLong, todayJkt, wibInstant } from "./format";
 import { financeData } from "./services/finance";
+import { expenseWhere, profitLossData } from "./services/expenses";
 
 const E = translator("id", "enums");
 const WIB = 7 * 3600_000;
@@ -115,17 +116,19 @@ export async function participantsWorkbook(f: ExportFilter, adminName: string) {
   return Buffer.from(await wb.xlsx.writeBuffer());
 }
 
-/** bwi-sim_keuangan_{YYYY}.xlsx — Ringkasan per bulan + Pembayaran. */
+/** bwi-sim_keuangan_{YYYY}.xlsx — Ringkasan per bulan, Laba Rugi, Pembayaran, Pengeluaran, Komposisi. */
 export async function financeWorkbook(year: number, adminName: string) {
   const wb = new ExcelJS.Workbook();
   wb.creator = "BWI Sim Center";
   const fd = await financeData(year);
   const meta = [`BWI Sim Center — Rekap Keuangan ${year}`, `Filter: periode Tahun ${year} · hanya invoice LUNAS dikurangi refund`, `Diekspor ${fmtDateTime(new Date(), "id")} oleh ${adminName} (Super Admin)`];
   await summarySheet(wb, year, meta);
+  await profitLossSheet(wb, year);
   const from = wibInstant(`${year}-01-01`);
   const to = wibInstant(`${year + 1}-01-01`);
   const invs = await db.invoice.findMany({ where: { OR: [{ issued_at: { gte: from, lt: to } }, { paid_at: { gte: from, lt: to } }] }, include: { registration: { include: { participant: true, package: true, simulator: true } } }, orderBy: { issued_at: "asc" } });
   await paymentsSheet(wb, invs, null);
+  await expensesSheet(wb, year);
   const ws = wb.addWorksheet("Komposisi");
   ws.addRow(["Paket", "Porsi pendapatan (%)"]).font = { bold: true };
   fd.mix.forEach((m) => ws.addRow([m.name_id, m.pct]));
@@ -134,6 +137,57 @@ export async function financeWorkbook(year: number, adminName: string) {
   ws.getColumn(1).width = 30;
   ws.getColumn(2).width = 22;
   return Buffer.from(await wb.xlsx.writeBuffer());
+}
+
+/** Sheet "Laba Rugi": pemasukan bersih − pengeluaran per bulan, pajak dari setting (revisi Nov 2026, poin 10). */
+async function profitLossSheet(wb: ExcelJS.Workbook, year: number) {
+  const pl = await profitLossData(year);
+  const pct = String(pl.tax.pct).replace(".", ",");
+  const taxNote = pl.tax.pct > 0 ? `Pajak ${pct}% dari ${pl.tax.base === "REVENUE" ? "pemasukan bersih (omzet)" : "laba sebelum pajak"}` : "Pajak belum diatur (0%)";
+  const rows: unknown[][] = pl.months.map((m, i) => [`${monthLong(i, "id")} ${year}`, m.revenue, m.expense, m.profit, m.tax, m.after, m.margin]);
+  rows.push(["TOTAL", pl.total.revenue, pl.total.expense, pl.total.profit, pl.total.tax, pl.total.after, pl.total.margin]);
+  const ws = sheet(
+    wb,
+    "Laba Rugi",
+    [
+      { h: "Bulan", type: "text" }, { h: "Pemasukan bersih", type: "money" }, { h: "Pengeluaran", type: "money" }, { h: "Laba sebelum pajak", type: "money" },
+      { h: "Pajak", type: "money" }, { h: "Laba setelah pajak", type: "money" }, { h: "Margin %", type: "number" },
+    ],
+    rows,
+    [
+      `BWI Sim Center — Laba Rugi ${year}`,
+      `Pemasukan = invoice lunas dikurangi refund · ${taxNote}`,
+      pl.tax.differs ? "Pajak TOTAL dihitung dari laba setahun (rugi bulan lain mengurangi), bisa berbeda dari jumlah pajak per bulan" : "",
+    ],
+    1,
+  );
+  [2, 3, 4, 5, 6].forEach((c) => (ws.getColumn(c).numFmt = "#,##0;[Red]-#,##0"));
+  const last = ws.lastRow;
+  if (last) last.font = { bold: true };
+}
+
+/** Sheet "Pengeluaran": 1 baris = 1 catatan pengeluaran tahun itu. */
+async function expensesSheet(wb: ExcelJS.Workbook, year: number) {
+  const [rows, admins] = await Promise.all([
+    db.expense.findMany({ where: expenseWhere(year), orderBy: [{ spent_on: "asc" }, { id: "asc" }] }),
+    db.adminUser.findMany({ select: { id: true, name: true } }),
+  ]);
+  const ws = sheet(
+    wb,
+    "Pengeluaran",
+    [
+      { h: "No.", type: "number", w: 6 }, { h: "Tanggal", type: "date" }, { h: "Kategori", type: "text" }, { h: "Keterangan", type: "text" }, { h: "Dibayar ke", type: "text" },
+      { h: "Nominal", type: "money" }, { h: "Nota", type: "text" }, { h: "Dicatat oleh", type: "text" },
+    ],
+    [
+      ...rows.map((e, i) => [i + 1, e.spent_on, e.category, e.description, e.payee ?? "", Number(e.amount), e.receipt_key ? "Ada" : "", admins.find((a) => a.id === (e.updated_by ?? e.created_by))?.name ?? ""]),
+      ...(rows.length ? [["", null, "TOTAL", "", "", rows.reduce((a, e) => a + Number(e.amount), 0), "", ""]] : []),
+    ],
+    null,
+    1,
+  );
+  ws.getColumn(1).numFmt = "0";
+  if (rows.length && ws.lastRow) ws.lastRow.font = { bold: true };
 }
 
 async function paymentsSheet(wb: ExcelJS.Workbook, invs: Prisma.InvoiceGetPayload<{ include: { registration: { include: { participant: true; package: true; simulator: true } } } }>[], meta: string[] | null) {

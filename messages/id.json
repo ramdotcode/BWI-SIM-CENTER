@@ -830,7 +830,7 @@
       "cannotSelf": "Tidak bisa menonaktifkan / menurunkan akun sendiri."
     },
     "finance": {
-      "title": "Rekap Keuangan",
+      "title": "Keuangan",
       "period": "Periode",
       "export": "⤓ Export Excel",
       "kpiYtd": "Pendapatan YTD",
@@ -855,7 +855,61 @@
       "colAmount": "Nominal",
       "colVerifier": "Verifikator",
       "colProof": "Bukti",
-      "refund": "refund"
+      "refund": "refund",
+      "tabIncome": "Pemasukan",
+      "tabExpense": "Pengeluaran",
+      "tabProfit": "Gabungan · Laba rugi",
+      "month": "Bulan",
+      "allMonths": "Semua",
+      "category": "Kategori",
+      "allCategories": "Semua",
+      "expKpiYtd": "Total pengeluaran {year}",
+      "expKpiYtdD": "{n} catatan pengeluaran",
+      "expKpiMonthD": "Pengeluaran bulan berjalan",
+      "expKpiTop": "Kategori terbesar",
+      "expKpiTopD": "{pct}% dari total · {amount}",
+      "expKpiRatio": "Pengeluaran ÷ pemasukan",
+      "expKpiRatioD": "Dari pemasukan bersih tahun ini",
+      "expChart": "Pengeluaran per bulan",
+      "expByCat": "Per kategori",
+      "expList": "Daftar pengeluaran",
+      "expListD": "{n} catatan · total Rp {total}",
+      "expEmpty": "Belum ada pengeluaran tercatat",
+      "expAdd": "＋ Catat pengeluaran",
+      "expEdit": "Ubah pengeluaran",
+      "expDelete": "Hapus pengeluaran",
+      "expDeleteQ": "Hapus \"{desc}\" (Rp {amount}, {date})? Data tidak bisa dikembalikan; isinya tetap tercatat di log aktivitas.",
+      "expToastAdded": "Pengeluaran dicatat",
+      "expToastUpdated": "Pengeluaran diperbarui",
+      "expToastDeleted": "Pengeluaran dihapus",
+      "expCatHint": "Daftar kategori diatur di Pengaturan → Keuangan",
+      "expDescPh": "mis. Servis AC ruang simulator",
+      "expReceiptHint": "Foto/PDF nota atau kuitansi (opsional)",
+      "expHaveReceipt": "Lampiran: {name}",
+      "expRemoveReceipt": "hapus lampiran",
+      "colDate": "Tanggal",
+      "colDesc": "Keterangan",
+      "colPayee": "Dibayar ke",
+      "colAmountRp": "Nominal (Rp)",
+      "colReceipt": "Nota",
+      "colBy": "Dicatat oleh",
+      "plRevenue": "Pemasukan bersih",
+      "plRevenueD": "Invoice lunas dikurangi refund",
+      "plExpense": "Pengeluaran",
+      "plExpenseD": "Semua kategori",
+      "plProfit": "Laba sebelum pajak",
+      "plMargin": "Margin {pct}% dari pemasukan",
+      "plAfter": "Laba setelah pajak",
+      "plTax": "Pajak",
+      "plMarginCol": "Margin",
+      "plChart": "Pemasukan vs pengeluaran per bulan",
+      "plTable": "Laba rugi {year}",
+      "plTotal": "Total {year}",
+      "taxOff": "Pajak belum diatur (0%)",
+      "taxOnProfit": "Pajak {pct}% dari laba",
+      "taxOnRevenue": "Pajak {pct}% dari pemasukan",
+      "taxSettings": "atur pajak",
+      "taxAnnualNote": "Total pajak setahun dihitung dari laba setahun (rugi di satu bulan mengurangi laba bulan lain), jadi bisa berbeda dari jumlah pajak per bulan."
     },
     "db": {
       "title": "Database Peserta",
@@ -879,7 +933,8 @@
         "billing": "Invoice & pembayaran",
         "notify": "Notifikasi",
         "access": "Akses & data",
-        "general": "Umum"
+        "general": "Umum",
+        "finance": "Keuangan"
       },
       "saved": "Pengaturan disimpan",
       "addPackage": "＋ Paket",
@@ -935,7 +990,10 @@
         "reupload_manual_threshold": "Tandai kontak manual setelah N× unggah ulang",
         "document_retention_days": "Hapus otomatis dokumen peserta setelah (hari)",
         "upload_max_mb": "Batas ukuran 1 file unggahan (MB)",
-        "default_locale": "Bahasa default publik"
+        "default_locale": "Bahasa default publik",
+        "expense_categories": "Kategori pengeluaran (pisahkan koma)",
+        "income_tax_percent": "Pajak penghasilan di laba rugi (%)",
+        "income_tax_base": "Dasar perhitungan pajak"
       },
       "sessions": "Jumlah sesi",
       "hoursShort": "{h} jam",
@@ -944,7 +1002,9 @@
       "advancedHint": "jarang perlu diubah; ubah hanya bila paham dampaknya",
       "opt": {
         "HOURS_FORFEITED": "Jam hangus",
-        "HOURS_RETURNED": "Jam dikembalikan (bisa dijadwalkan ulang)"
+        "HOURS_RETURNED": "Jam dikembalikan (bisa dijadwalkan ulang)",
+        "PROFIT": "Laba sebelum pajak",
+        "REVENUE": "Pemasukan bersih (omzet)"
       },
       "hints": {
         "session_times": "Jam mulai–selesai tiap sesi, format 07:30-11:30, pisahkan dengan koma. Semua sesi harus sama panjang. Slot kosong yang tidak sesuai lagi dihapus otomatis; slot yang sudah terisi tidak berubah.",
@@ -975,7 +1035,10 @@
         "reupload_token_days": "Berapa hari link unggah ulang dokumen (setelah ditolak) bisa dipakai.",
         "reupload_manual_threshold": "Bila peserta sudah N kali unggah ulang, pendaftar ditandai untuk dihubungi manual.",
         "document_retention_days": "Dihitung sejak pendaftaran selesai/batal/kedaluwarsa. Isi 0 = dokumen tidak pernah dihapus.",
-        "upload_max_mb": "Batas per file, 1–20 MB."
+        "upload_max_mb": "Batas per file, 1–20 MB.",
+        "expense_categories": "Pilihan kategori saat mencatat pengeluaran. Mengganti nama kategori tidak mengubah catatan lama.",
+        "income_tax_percent": "0 = tidak dihitung. Contoh: 0,5 untuk PPh final 0,5% dari omzet, atau 22 untuk PPh badan dari laba.",
+        "income_tax_base": "Dipakai di tab Keuangan → Gabungan · Laba rugi dan sheet \"Laba Rugi\" di Excel."
       }
     },
     "people": {

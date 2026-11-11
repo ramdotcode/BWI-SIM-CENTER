@@ -9,7 +9,7 @@ import { tooLarge, uploadLimit } from "@/lib/uploads";
 import { storage } from "@/lib/storage";
 
 const schema = z.object({
-  kind: z.enum([...ALL_DOC_KINDS, "PAYMENT_PROOF", "REFUND_PROOF", "SESSION_REPORT"]),
+  kind: z.enum([...ALL_DOC_KINDS, "PAYMENT_PROOF", "REFUND_PROOF", "SESSION_REPORT", "EXPENSE_RECEIPT"]),
   name: z.string().min(1).max(200),
   size: z.number().int().positive(),
   mime: z.string().max(100),

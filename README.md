@@ -108,6 +108,18 @@ Alur unggah di mode ini: browser minta URL bertanda tangan → PUT langsung ke R
 ### Alternatif tanpa Vercel
 Server Node biasa (`npm run build && npm start`, Railway/Render/VPS) juga didukung; di sana driver `local` (disk terenkripsi) boleh dipakai asal disk permanen & di-backup.
 
+## Keuangan: pemasukan, pengeluaran, laba rugi (revisi klien Nov 2026, poin 10)
+
+Masuk putaran revisi (tidak ditagih terpisah). Menu **Keuangan** (Super Admin) kini punya 3 tab: **Pemasukan** (rekap lama: invoice lunas dikurangi refund), **Pengeluaran**, dan **Gabungan · Laba rugi**.
+
+| Bagian | Implementasi |
+|---|---|
+| Tabel baru `expenses` | Migrasi `20261111090000_expenses` (RLS menyala tanpa policy). Kolom: tanggal (`spent_on`, DATE WIB), kategori (teks), keterangan, dibayar ke (ops.), nominal, nota (ops.), dicatat/diubah oleh. |
+| Catat pengeluaran | Hanya Super Admin: tambah / ubah / hapus di tab Pengeluaran (`/api/admin/expenses`). Lampiran nota opsional (JPG/PNG/PDF, unggah `EXPENSE_RECEIPT`, batas `upload_max_mb`), dibuka lewat `/api/admin/uploads/expense:{id}` (SA saja). Semua aksi di `activity_log` (`expense.created/updated/deleted`, isi catatan yang dihapus ikut disimpan). |
+| Kategori | Setting `expense_categories` (Pengaturan → Keuangan). Kategori disimpan sebagai teks, jadi mengganti nama kategori tidak mengubah catatan lama. |
+| Laba rugi | Per bulan + total setahun: pemasukan bersih − pengeluaran = laba sebelum pajak → pajak → laba setelah pajak, margin %. Pajak dari setting `income_tax_percent` (default 0 = tidak dihitung) dengan dasar `income_tax_base`: `PROFIT` (laba) atau `REVENUE` (omzet, mis. PPh final 0,5%). Dasar laba: pajak setahun dihitung dari laba setahun, bisa berbeda dari jumlah pajak per bulan (ada catatan di layar & Excel). |
+| Excel `bwi-sim_keuangan_{YYYY}.xlsx` | Sheet baru **Laba Rugi** (setelah Ringkasan) dan **Pengeluaran** (setelah Pembayaran). |
+
 ## Ganti instruktur pada sesi terjadwal (6 Okt 2026)
 
 Kelola jadwal → klik sesi mendatang → **Ganti instruktur**: pilih instruktur lain (atau tanpa instruktur) tanpa melepas slot. Dicek: instruktur aktif, mengajar simulator tersebut, tidak bentrok di simulator lain pada jam yang sama. Opsi beri tahu peserta (bila jadwal sudah dikirim & nama instruktur ditampilkan — Q2). Log: `slot.instructor_changed`. Daftar instruktur dikelola di Pengaturan → Instruktur.
